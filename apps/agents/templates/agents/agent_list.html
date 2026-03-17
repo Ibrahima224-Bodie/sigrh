@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Gestion des Agents{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 text-gray-800">
+                <i class="fas fa-users"></i> Agents
+            </h1>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="{% url 'agent-create' %}" class="btn btn-success btn-lg">
+                <i class="fas fa-plus"></i> Ajouter un Agent
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-secondary">
+            <h6 class="m-0 font-weight-bold text-white">
+                <i class="fas fa-filter"></i> Filtres
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="form-inline">
+                <div class="form-group mr-3">
+                    <input type="text" name="search" class="form-control" placeholder="Rechercher par nom ou prénom..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                <a href="{% url 'agent-list' %}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-redo"></i> Réinitialiser
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau des agents -->
+    {% if agents %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary">
+            <h6 class="m-0 font-weight-bold text-white">
+                <i class="fas fa-list"></i> Liste des Agents ({{ agents.paginator.count }} total)
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" style="max-height: 600px; overflow-y: auto; border: 1px solid #ddd;">
+                <table class="table table-sm table-bordered table-hover table-striped" width="100%">
+                    <thead class="sticky-top bg-light" style="top: 0; z-index: 10;">
+                        <tr>
+                            <th style="width: 5%; text-align: center;" class="bg-info text-white">#</th>
+                            <th style="width: 10%;">Matricule</th>
+                            <th style="width: 10%;">Nom</th>
+                            <th style="width: 10%;">Prénom</th>
+                            <th style="width: 10%;">Téléphone</th>
+                            <th style="width: 15%;">Email</th>
+                            <th style="width: 10%;">Fonction</th>
+                            <th style="width: 10%;">Service</th>
+                            <th style="width: 10%;">Date Recrutement</th>
+                            <th style="width: 10%;">Photo</th>
+                            <th style="width: 10%; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agent in agents %}
+                        <tr>
+                            <td style="text-align: center; background-color: #f0f0f0; font-weight: bold;">
+                                {{ forloop.counter }}
+                            </td>
+                            <td>{{ agent.matricule }}</td>
+                            <td><strong>{{ agent.nom }}</strong></td>
+                            <td>{{ agent.prenom }}</td>
+                            <td>{{ agent.telephone|default:"N/A" }}</td>
+                            <td>{{ agent.email|default:"N/A" }}</td>
+                            <td><span class="badge badge-info">{{ agent.fonction|default:"N/A" }}</span></td>
+                            <td>{{ agent.service.nom|default:"N/A" }}</td>
+                            <td>
+                                {% if agent.date_recrutement %}
+                                    {{ agent.date_recrutement|date:"d/m/Y" }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if agent.photo %}
+                                    <img src="{{ agent.photo.url }}" alt="Photo de {{ agent.nom }}" style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" class="rounded img-thumbnail" data-toggle="modal" data-target="#photoModal{{ agent.id }}">
+                                {% else %}
+                                    <span class="text-muted">Aucune</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'agent-detail' agent.id %}" class="btn btn-info" title="Voir" data-toggle="tooltip">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'agent-update' agent.id %}" class="btn btn-warning" title="Modifier" data-toggle="tooltip">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'agent-delete' agent.id %}" class="btn btn-danger" title="Supprimer" data-toggle="tooltip">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="card-footer bg-light">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                            <i class="fas fa-step-backward"></i> Première
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i> Précédente
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num|add:'-3' <= page_obj.number and num|add:'3' >= page_obj.number %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                            Suivante <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                            Dernière <i class="fas fa-step-forward"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-info-circle"></i> <strong>Aucun agent trouvé.</strong>
+        <a href="{% url 'agent-create' %}" class="alert-link">Ajouter un premier agent</a>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modals pour afficher les photos en grand -->
+{% for agent in agents %}
+{% if agent.photo %}
+<div class="modal fade" id="photoModal{{ agent.id }}" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel{{ agent.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalLabel{{ agent.id }}">Photo de {{ agent.nom }} {{ agent.prenom }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ agent.photo.url }}" alt="Photo de {{ agent.nom }}" class="img-fluid rounded" style="max-width: 100%; max-height: 70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<style>
+    .table-responsive {
+        border-radius: 4px;
+    }
+    .sticky-top {
+        position: sticky;
+    }
+    .badge {
+        font-size: 0.85em;
+    }
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+$(document).ready(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3>{{ total_agents }}</h3>
+        <p>Agents</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <a href="#" class="small-box-footer">Plus d'infos <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3>{{ total_formations }}</h3>
+        <p>Formations</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-graduation-cap"></i>
+      </div>
+      <a href="#" class="small-box-footer">Plus d'infos <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+</div>
+{% endblock %}

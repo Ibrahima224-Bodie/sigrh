@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Gestion des Directions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 text-gray-800">Directions</h1>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="{% url 'direction-create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Ajouter une Direction
+            </a>
+        </div>
+    </div>
+
+    {% if directions %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary">
+            <h6 class="m-0 font-weight-bold text-white">Liste des Directions</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Responsable</th>
+                            <th>Téléphone</th>
+                            <th>Email</th>
+                            <th>Localisation</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for direction in directions %}
+                        <tr>
+                            <td>{{ direction.id }}</td>
+                            <td>{{ direction.nom }}</td>
+                            <td>{{ direction.responsable }}</td>
+                            <td>{{ direction.telephone }}</td>
+                            <td>{{ direction.email }}</td>
+                            <td>{{ direction.localisation }}</td>
+                            <td>
+                                <a href="{% url 'direction-detail' direction.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'direction-update' direction.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'direction-delete' direction.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Aucune direction trouvée.</div>
+    {% endif %}
+</div>
+{% endblock %}

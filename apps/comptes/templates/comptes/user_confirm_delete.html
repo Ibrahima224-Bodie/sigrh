@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Suppression - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-left-danger mb-4">
+                <div class="card-header py-3 bg-danger">
+                    <h6 class="m-0 font-weight-bold text-white">Confirmation de Suppression</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Attention!</strong> Cette action est irréversible.
+                    </div>
+
+                    <p class="mb-3">
+                        Êtes-vous sûr de vouloir supprimer cet utilisateur ?
+                    </p>
+
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <p class="mb-1"><strong>Nom d'Utilisateur :</strong> {{ user.username }}</p>
+                            <p class="mb-1"><strong>Nom :</strong> {{ user.last_name }}</p>
+                            <p class="mb-1"><strong>Prénom :</strong> {{ user.first_name }}</p>
+                            <p class="mb-1"><strong>Email :</strong> {{ user.email }}</p>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-check"></i> Oui, supprimer
+                        </button>
+                        <a href="{% url 'user-list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Annuler
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

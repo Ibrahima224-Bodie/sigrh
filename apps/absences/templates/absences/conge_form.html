@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Formulaire Congé{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary">
+                    <h6 class="m-0 font-weight-bold text-white">{{ page_title|default:"Congé" }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="{{ form.agent_text.id_for_label }}">{{ form.agent_text.label }}</label>
+                            {{ form.agent_text }}
+                            {% if form.agent_text.errors %}<div class="invalid-feedback d-block">{{ form.agent_text.errors }}</div>{% endif %}
+                            <datalist id="agent-list">
+                                {% for agent in agents %}
+                                <option value="{{ agent.nom }} {{ agent.prenom }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.date_debut.id_for_label }}">{{ form.date_debut.label }}</label>
+                                {{ form.date_debut }}
+                                {% if form.date_debut.errors %}<div class="invalid-feedback d-block">{{ form.date_debut.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.date_fin.id_for_label }}">{{ form.date_fin.label }}</label>
+                                {{ form.date_fin }}
+                                {% if form.date_fin.errors %}<div class="invalid-feedback d-block">{{ form.date_fin.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.type_conge.id_for_label }}">{{ form.type_conge.label }}</label>
+                                {{ form.type_conge }}
+                                {% if form.type_conge.errors %}<div class="invalid-feedback d-block">{{ form.type_conge.errors }}</div>{% endif %}
+                                <datalist id="type-conge-list">
+                                    {% for choice_value, choice_label in type_conge_choices %}
+                                    <option value="{{ choice_label }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.statut.id_for_label }}">{{ form.statut.label }}</label>
+                                {{ form.statut }}
+                                {% if form.statut.errors %}<div class="invalid-feedback d-block">{{ form.statut.errors }}</div>{% endif %}
+                                <datalist id="statut-list">
+                                    {% for choice_value, choice_label in statut_choices %}
+                                    <option value="{{ choice_label }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.motif.id_for_label }}">{{ form.motif.label }}</label>
+                            {{ form.motif }}
+                            {% if form.motif.errors %}<div class="invalid-feedback d-block">{{ form.motif.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                            <a href="{% url 'conge-list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Détail - {{ structure.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-white">{{ structure.nom }}</h6>
+                        <div>
+                            <a href="{% url 'structure-update' structure.id %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="{% url 'structure-delete' structure.id %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Informations Générales</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Nom :</th>
+                                    <td>{{ structure.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Niveau :</th>
+                                    <td><span class="badge badge-info">{{ structure.niveau }}</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Parent :</th>
+                                    <td>
+                                        {% if structure.parent %}
+                                            <a href="{% url 'structure-detail' structure.parent.id %}">
+                                                {{ structure.parent.nom }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Aucun (Racine)</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if structure.description %}
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Description</h6>
+                        <p>{{ structure.description|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="mt-4">
+                        <a href="{% url 'structure-list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

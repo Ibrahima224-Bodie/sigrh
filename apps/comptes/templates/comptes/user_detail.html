@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Détail - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-white">{{ user.username }}</h6>
+                        <div>
+                            <a href="{% url 'user-update' user.id %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="{% url 'user-delete' user.id %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Informations Personnelles</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Nom d'Utilisateur :</th>
+                                    <td>{{ user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nom :</th>
+                                    <td>{{ user.last_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Prénom :</th>
+                                    <td>{{ user.first_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email :</th>
+                                    <td>
+                                        <a href="mailto:{{ user.email }}">{{ user.email }}</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Statut & Permissions</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Statut :</th>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge badge-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Staff :</th>
+                                    <td>
+                                        {% if user.is_staff %}
+                                            <span class="badge badge-info">Oui</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Non</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Rôle :</th>
+                                    <td>{{ user.role|default:"Non attribué" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mt-4">
+                        <a href="{% url 'user-list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

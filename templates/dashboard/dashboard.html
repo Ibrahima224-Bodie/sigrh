@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Statistiques -->
+<div class="row">
+  <!-- Agents -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3>{{ total_agents }}</h3>
+        <p>Agents</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <a href="{% url 'agent-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+
+  <!-- Formations -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3>{{ total_formations }}</h3>
+        <p>Formations</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-graduation-cap"></i>
+      </div>
+      <a href="{% url 'formation-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+
+  <!-- Congés -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-warning">
+      <div class="inner">
+        <h3>{{ total_conges }}</h3>
+        <p>Congés</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-door-open"></i>
+      </div>
+      <a href="{% url 'conge-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+
+  <!-- Carrières -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-danger">
+      <div class="inner">
+        <h3>{{ total_carrieres }}</h3>
+        <p>Carrières</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-suitcase"></i>
+      </div>
+      <a href="{% url 'carriere-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+
+  <!-- Comptes -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-primary">
+      <div class="inner">
+        <h3>{{ total_comptes }}</h3>
+        <p>Comptes</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-lock"></i>
+      </div>
+      <a href="{% url 'user-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+
+  <!-- Organigramme -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-dark">
+      <div class="inner">
+        <h3>{{ total_organigramme }}</h3>
+        <p>Organigramme</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-chart-bar"></i>
+      </div>
+      <a href="{% url 'structure-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- Listes rapides -->
+<div class="row mt-4">
+  <!-- Agents récents -->
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-info">
+        <h5 class="m-0 text-white">
+          <i class="fas fa-users"></i> Agents Récents
+        </h5>
+      </div>
+      <div class="card-body" style="padding: 10px;">
+        {% if agents %}
+        <div class="list-group list-group-flush">
+          {% for agent in agents %}
+          <a href="{% url 'agent-detail' agent.id %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ agent.nom }} {{ agent.prenom }}</h6>
+              <small>{{ agent.fonction }}</small>
+            </div>
+            <small class="text-muted">{{ agent.matricule }}</small>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Aucun agent</p>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        <a href="{% url 'agent-list' %}" class="btn btn-sm btn-info">Voir tous</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formations récentes -->
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-success">
+        <h5 class="m-0 text-white">
+          <i class="fas fa-graduation-cap"></i> Formations Récentes
+        </h5>
+      </div>
+      <div class="card-body" style="padding: 10px;">
+        {% if formations %}
+        <div class="list-group list-group-flush">
+          {% for formation in formations %}
+          <a href="#" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ formation.titre }}</h6>
+              <small>{{ formation.date_debut|date:"d/m/Y" }}</small>
+            </div>
+            <small class="text-muted">{{ formation.organisme }}</small>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Aucune formation</p>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        <a href="{% url 'formation-list' %}" class="btn btn-sm btn-success">Voir tous</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deuxième ligne de listes -->
+<div class="row mt-4">
+  <!-- Congés en attente -->
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-warning">
+        <h5 class="m-0 text-white">
+          <i class="fas fa-door-open"></i> Congés Récents
+        </h5>
+      </div>
+      <div class="card-body" style="padding: 10px;">
+        {% if conges %}
+        <div class="list-group list-group-flush">
+          {% for conge in conges %}
+          <a href="{% url 'conge-detail' conge.id %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ conge.agent.nom }} {{ conge.agent.prenom }}</h6>
+              <small>
+                {% if conge.statut == 'approuve' %}
+                  <span class="badge badge-success">Approuvé</span>
+                {% elif conge.statut == 'rejete' %}
+                  <span class="badge badge-danger">Rejeté</span>
+                {% else %}
+                  <span class="badge badge-warning">En attente</span>
+                {% endif %}
+              </small>
+            </div>
+            <small class="text-muted">{{ conge.date_debut|date:"d/m/Y" }} - {{ conge.date_fin|date:"d/m/Y" }}</small>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Aucun congé</p>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        <a href="{% url 'conge-list' %}" class="btn btn-sm btn-warning">Voir tous</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carrières récentes -->
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-danger">
+        <h5 class="m-0 text-white">
+          <i class="fas fa-suitcase"></i> Carrières Récentes
+        </h5>
+      </div>
+      <div class="card-body" style="padding: 10px;">
+        {% if carrieres %}
+        <div class="list-group list-group-flush">
+          {% for carriere in carrieres %}
+          <a href="#" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ carriere.agent.nom }} {{ carriere.agent.prenom }}</h6>
+              <small>{{ carriere.poste }}</small>
+            </div>
+            <small class="text-muted">Depuis {{ carriere.date_debut|date:"d/m/Y" }}</small>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Aucune carrière</p>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        <a href="{% url 'carriere-list' %}" class="btn btn-sm btn-danger">Voir tous</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+<!-- Modal de Formulaire -->
+<div class="modal fade" id="formModal" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white" id="formModalLabel">Formulaire</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" id="modalForm" class="modal-body">
+                {% csrf_token %}
+                <div id="formContent">
+                    <!-- Le contenu du formulaire sera chargé ici -->
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary" form="modalForm">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Ouvrir le modal avec le formulaire de création
+function openCreateModal(url, title) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('formContent').innerHTML = html;
+            document.getElementById('formModalLabel').textContent = title;
+            $('#formModal').modal('show');
+        })
+        .catch(error => console.error('Erreur:', error));
+}
+
+// Ouvrir le modal avec le formulaire de modification
+function openEditModal(url, title) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('formContent').innerHTML = html;
+            document.getElementById('formModalLabel').textContent = title;
+            $('#formModal').modal('show');
+        })
+        .catch(error => console.error('Erreur:', error));
+}
+
+// Gérer la soumission du formulaire
+document.getElementById('modalForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitUrl = this.getAttribute('action');
+    
+    fetch(submitUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#formModal').modal('hide');
+            // Recharger la page
+            location.reload();
+        } else {
+            // Afficher les erreurs
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Erreur:', error));
+});
+</script>

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Détail - {{ conge.agent.nom }} {{ conge.agent.prenom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-white">Congé - {{ conge.agent.nom }} {{ conge.agent.prenom }}</h6>
+                        <div>
+                            <a href="{% url 'conge-update' conge.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Agent</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Nom :</th>
+                                    <td>
+                                        <a href="{% url 'agent-detail' conge.agent.id %}">
+                                            {{ conge.agent.nom }} {{ conge.agent.prenom }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Poste :</th>
+                                    <td>{{ conge.agent.poste }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email :</th>
+                                    <td>{{ conge.agent.email }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Détails du Congé</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Type :</th>
+                                    <td>{{ conge.type_conge }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Statut :</th>
+                                    <td>
+                                        {% if conge.statut == 'approuve' %}
+                                            <span class="badge badge-success">Approuvé</span>
+                                        {% elif conge.statut == 'rejete' %}
+                                            <span class="badge badge-danger">Rejeté</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">En attente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Durée :</th>
+                                    <td>
+                                        {% with duree=conge.date_fin|add:1 %}
+                                            {{ duree|add:conge.date_debut|divisibleby:duree|yesno:"jours" }}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Période</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="20%">Début :</th>
+                                    <td>{{ conge.date_debut|date:"d/m/Y" }}</td>
+                                    <th width="20%" style="text-align: right;">Fin :</th>
+                                    <td>{{ conge.date_fin|date:"d/m/Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if conge.motif %}
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Motif</h6>
+                        <p>{{ conge.motif|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="mt-4">
+                        <a href="{% url 'conge-list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

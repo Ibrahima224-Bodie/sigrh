@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Formulaire Utilisateur{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary">
+                    <h6 class="m-0 font-weight-bold text-white">{{ page_title|default:"Utilisateur" }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="invalid-feedback d-block">{{ form.password1.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">
+                                {{ form.password1.help_text|safe }}
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="invalid-feedback d-block">{{ form.password2.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
+                                {{ form.role }}
+                                {% if form.role.errors %}<div class="invalid-feedback d-block">{{ form.role.errors }}</div>{% endif %}
+                                <datalist id="role-list">
+                                    {% for choice_value, choice_label in role_choices %}
+                                    <option value="{{ choice_label }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.structure_text.id_for_label }}">{{ form.structure_text.label }}</label>
+                                {{ form.structure_text }}
+                                {% if form.structure_text.errors %}<div class="invalid-feedback d-block">{{ form.structure_text.errors }}</div>{% endif %}
+                                <datalist id="structure-list">
+                                    {% for structure in structures %}
+                                    <option value="{{ structure.nom }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                            <a href="{% url 'user-list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

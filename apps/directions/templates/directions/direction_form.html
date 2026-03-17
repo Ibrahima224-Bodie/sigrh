@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Formulaire Direction{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary">
+                    <h6 class="m-0 font-weight-bold text-white">{{ page_title|default:"Direction" }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
+                            {{ form.nom }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.responsable.id_for_label }}">{{ form.responsable.label }}</label>
+                            {{ form.responsable }}
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.telephone.id_for_label }}">{{ form.telephone.label }}</label>
+                                {{ form.telephone }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.localisation.id_for_label }}">{{ form.localisation.label }}</label>
+                            {{ form.localisation }}
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                            <a href="{% url 'direction-list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

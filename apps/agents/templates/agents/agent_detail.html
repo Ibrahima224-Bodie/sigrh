@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Détail - {{ agent.nom }} {{ agent.prenom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-white">Agent - {{ agent.nom }} {{ agent.prenom }}</h6>
+                        <div>
+                            <a href="{% url 'agent-update' agent.id %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="{% url 'agent-delete' agent.id %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Informations Personnelles</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Matricule :</th>
+                                    <td>{{ agent.matricule }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nom :</th>
+                                    <td>{{ agent.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Prénom :</th>
+                                    <td>{{ agent.prenom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email :</th>
+                                    <td>
+                                        {% if agent.email %}
+                                            <a href="mailto:{{ agent.email }}">{{ agent.email }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Non spécifié</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Téléphone :</th>
+                                    <td>{{ agent.telephone|default:"Non spécifié" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase font-weight-bold text-gray-800 mb-2">Informations Professionnelles</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Fonction :</th>
+                                    <td>{{ agent.fonction|default:"Non spécifié" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Service :</th>
+                                    <td>{{ agent.service.nom|default:"Non spécifié" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date de Recrutement :</th>
+                                    <td>
+                                        {% if agent.date_recrutement %}
+                                            {{ agent.date_recrutement|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">Non spécifiée</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Photo :</th>
+                                    <td>
+                                        {% if agent.photo %}
+                                            <div class="text-center">
+                                                <img src="{{ agent.photo.url }}" alt="Photo de {{ agent.nom }}" class="img-fluid rounded shadow" style="max-width: 200px; max-height: 200px; object-fit: cover; cursor: pointer;" data-toggle="modal" data-target="#photoModalDetail">
+                                                <br><small class="text-muted">Cliquez pour agrandir</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Aucune photo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mt-4">
+                        <a href="{% url 'agent-list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour afficher la photo en grand -->
+{% if agent.photo %}
+<div class="modal fade" id="photoModalDetail" tabindex="-1" role="dialog" aria-labelledby="photoModalDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalDetailLabel">Photo de {{ agent.nom }} {{ agent.prenom }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ agent.photo.url }}" alt="Photo de {{ agent.nom }}" class="img-fluid rounded shadow" style="max-width: 100%; max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
