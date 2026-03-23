@@ -105,17 +105,28 @@
 
                             <div class="form-group col-md-6">
                                 <label for="{{ form.date_recrutement.id_for_label }}">{{ form.date_recrutement.label }}</label>
-                                {{ form.date_recrutement }}
+                                <input 
+                                    type="date" 
+                                    name="{{ form.date_recrutement.name }}" 
+                                    id="{{ form.date_recrutement.id_for_label }}" 
+                                    class="form-control {% if form.date_recrutement.errors %}is-invalid{% endif %}"
+                                    value="{{ form.instance.date_recrutement|date:'Y-m-d' }}"
+                                >
                                 {% if form.date_recrutement.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.date_recrutement.errors }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.date_recrutement.errors }}
+                                    </div>
                                 {% endif %}
-                            </div>
+                            </div>  
                         </div>
 
                         <div class="form-group">
                             <label for="{{ form.photo.id_for_label }}">{{ form.photo.label }}</label>
+                            {% if form.instance.photo %}
+                                <div class="mb-2">
+                                    <img src="{{ form.instance.photo.url }}" alt="Photo actuelle" class="img-thumbnail" style="max-width: 150px;">
+                                </div>
+                            {% endif %}
                             {{ form.photo }}
                             {% if form.photo.errors %}
                             <div class="invalid-feedback d-block">

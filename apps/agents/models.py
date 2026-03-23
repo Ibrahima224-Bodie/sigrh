@@ -4,11 +4,29 @@ from apps.organigramme.models import Structure
 
 class Agent(models.Model):
 
-    matricule = models.CharField(max_length=50, unique=True)
+    matricule = models.CharField(
+        max_length=50,
+        unique=True,
+        error_messages={
+            'unique': ("Ce matricule est déjà utilisé.")
+        }
+    )
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
-    telephone = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    telephone = models.CharField(
+        max_length=20,
+            unique=True,
+            error_messages={
+                'unique': ("Ce numéro de téléphone est déjà utilisé.")
+            }
+        )
+    email = models.EmailField(
+        max_length=50,
+            unique=True,
+            error_messages={
+                'unique': ("Ce mail est déjà utilisé.")
+            }
+        )
     fonction = models.CharField(max_length=150, blank=True)
     service = models.ForeignKey(Structure, on_delete=models.SET_NULL, null=True, blank=True)
     date_recrutement = models.DateField(null=True, blank=True)

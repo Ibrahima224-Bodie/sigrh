@@ -90,7 +90,7 @@
                             </td>
                             <td>
                                 {% if agent.photo %}
-                                    <img src="{{ agent.photo.url }}" alt="Photo de {{ agent.nom }}" style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" class="rounded img-thumbnail" data-toggle="modal" data-target="#photoModal{{ agent.id }}">
+                                    <img src="{{ agent.photo.url }}" alt="Photo de {{ agent.nom }}" style="width: 60px; height: 40px; object-fit: cover; cursor: pointer;" class="rounded img-thumbnail" data-toggle="modal" data-target="#photoModal{{ agent.id }}">
                                 {% else %}
                                     <span class="text-muted">Aucune</span>
                                 {% endif %}

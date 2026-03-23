@@ -25,7 +25,7 @@ class AgentListView(ListView):
                 Q(matricule__icontains=search) |
                 Q(fonction__icontains=search)
             )
-        return queryset.order_by('-id')
+        return queryset.order_by('matricule')
 
 # Détail d'un agent
 class AgentDetailView(DetailView):
