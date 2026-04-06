@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ programme.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{{ programme.nom }} - Semestre {{ programme.semestre }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Filière" %}</h6>
+                            {% if programme.filiere %}
+                            <p><a href="{% url 'enseignants:filiere_detail' programme.filiere.pk %}">{{ programme.filiere.nom }}</a></p>
+                            {% else %}
+                            <p class="text-muted">Non liée</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Code" %}</h6>
+                            <p>{{ programme.code }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Description" %}</h6>
+                            <p>{{ programme.description }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Nombre d'heures" %}</h6>
+                            <p>{{ programme.nombre_heures }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Ordre" %}</h6>
+                            <p>{{ programme.ordre }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if perms.enseignants.change_programme %}
+                    <a href="{% url 'enseignants:programme_update' programme.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> {% trans "Modifier" %}
+                    </a>
+                    {% endif %}
+                    {% if programme.filiere %}
+                    <a href="{% url 'enseignants:filiere_detail' programme.filiere.pk %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                    {% else %}
+                    <a href="{% url 'enseignants:programme_list' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h5 class="card-title">{% trans "Modules" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if perms.enseignants.add_module %}
+                    <a href="{% url 'enseignants:module_create' %}" class="btn btn-sm btn-success mb-3">
+                        <i class="fas fa-plus"></i> {% trans "Ajouter un module" %}
+                    </a>
+                    {% endif %}
+                    {% if modules %}
+                        <ul class="list-group">
+                            {% for module in modules %}
+                            <li class="list-group-item">
+                                <a href="{% url 'enseignants:module_detail' module.pk %}">{{ module.nom }}</a>
+                                <small class="text-muted"> - {{ module.nombre_heures }}h</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "Aucun module disponible" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

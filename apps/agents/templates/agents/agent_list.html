@@ -13,9 +13,11 @@
             </h1>
         </div>
         <div class="col-md-4 text-right">
+            {% if perms.agents.add_agent %}
             <a href="{% url 'agent-create' %}" class="btn btn-success btn-lg">
                 <i class="fas fa-plus"></i> Ajouter un Agent
             </a>
+            {% endif %}
         </div>
     </div>
 
@@ -47,7 +49,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-primary">
             <h6 class="m-0 font-weight-bold text-white">
-                <i class="fas fa-list"></i> Liste des Agents ({{ agents.paginator.count }} total)
+                <i class="fas fa-list"></i> Liste des Agents ({{ paginator.count }} total)
             </h6>
         </div>
         <div class="card-body">
@@ -72,11 +74,11 @@
                         {% for agent in agents %}
                         <tr>
                             <td style="text-align: center; background-color: #f0f0f0; font-weight: bold;">
-                                {{ forloop.counter }}
+                                {{ row_start|add:forloop.counter }}
                             </td>
-                            <td>{{ agent.matricule }}</td>
+                            <td><strong>{{ agent.matricule }}</strong></td>
                             <td><strong>{{ agent.nom }}</strong></td>
-                            <td>{{ agent.prenom }}</td>
+                            <td><strong>{{ agent.prenom }}</strong></td>
                             <td>{{ agent.telephone|default:"N/A" }}</td>
                             <td>{{ agent.email|default:"N/A" }}</td>
                             <td><span class="badge badge-info">{{ agent.fonction|default:"N/A" }}</span></td>
@@ -97,15 +99,21 @@
                             </td>
                             <td style="text-align: center;">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    {% if perms.agents.view_agent %}
                                     <a href="{% url 'agent-detail' agent.id %}" class="btn btn-info" title="Voir" data-toggle="tooltip">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if perms.agents.change_agent %}
                                     <a href="{% url 'agent-update' agent.id %}" class="btn btn-warning" title="Modifier" data-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if perms.agents.delete_agent %}
                                     <a href="{% url 'agent-delete' agent.id %}" class="btn btn-danger" title="Supprimer" data-toggle="tooltip">
                                         <i class="fas fa-trash"></i>
                                     </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -166,7 +174,9 @@
     {% else %}
     <div class="alert alert-info alert-dismissible fade show" role="alert">
         <i class="fas fa-info-circle"></i> <strong>Aucun agent trouvé.</strong>
+        {% if perms.agents.add_agent %}
         <a href="{% url 'agent-create' %}" class="alert-link">Ajouter un premier agent</a>
+        {% endif %}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>

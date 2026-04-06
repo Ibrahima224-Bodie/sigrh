@@ -1,14 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
+from config.pagination import AdjustablePaginationMixin
+from apps.comptes.permissions import PermissionRequiredMixin
 from .models import Formation, Certificat
 from .forms import FormationForm, CertificatForm
 from apps.agents.models import Agent
 
 # Liste des formations
-class FormationListView(ListView):
+class FormationListView(LoginRequiredMixin, PermissionRequiredMixin, AdjustablePaginationMixin, ListView):
     model = Formation
+    model_permission_model = Formation
+    required_action = 'view'
     template_name = 'formations/formation_list.html'
     context_object_name = 'formations'
     paginate_by = 10
@@ -25,45 +30,55 @@ class FormationListView(ListView):
         return queryset.order_by('-id')
 
 # Détail d'une formation
-class FormationDetailView(DetailView):
+class FormationDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Formation
+    model_permission_model = Formation
+    required_action = 'view'
     template_name = 'formations/formation_detail.html'
     context_object_name = 'formation'
 
 # Créer une formation
-class FormationCreateView(CreateView):
+class FormationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Formation
+    model_permission_model = Formation
     form_class = FormationForm
     template_name = 'formations/formation_form.html'
     success_url = reverse_lazy('formation-list')
 
 # Modifier une formation
-class FormationUpdateView(UpdateView):
+class FormationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Formation
+    model_permission_model = Formation
     form_class = FormationForm
     template_name = 'formations/formation_form.html'
     success_url = reverse_lazy('formation-list')
 
 # Supprimer une formation
-class FormationDeleteView(DeleteView):
+class FormationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Formation
+    model_permission_model = Formation
     template_name = 'formations/formation_confirm_delete.html'
     success_url = reverse_lazy('formation-list')
 
 # Certificats
-class CertificatListView(ListView):
+class CertificatListView(LoginRequiredMixin, PermissionRequiredMixin, AdjustablePaginationMixin, ListView):
     model = Certificat
+    model_permission_model = Certificat
+    required_action = 'view'
     template_name = 'formations/certificat_list.html'
     context_object_name = 'certificats'
     paginate_by = 10
 
-class CertificatDetailView(DetailView):
+class CertificatDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Certificat
+    model_permission_model = Certificat
+    required_action = 'view'
     template_name = 'formations/certificat_detail.html'
     context_object_name = 'certificat'
 
-class CertificatCreateView(CreateView):
+class CertificatCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Certificat
+    model_permission_model = Certificat
     form_class = CertificatForm
     template_name = 'formations/certificat_form.html'
     success_url = reverse_lazy('certificat-list')
@@ -74,8 +89,9 @@ class CertificatCreateView(CreateView):
         context['agents'] = Agent.objects.all()
         return context
 
-class CertificatUpdateView(UpdateView):
+class CertificatUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Certificat
+    model_permission_model = Certificat
     form_class = CertificatForm
     template_name = 'formations/certificat_form.html'
     success_url = reverse_lazy('certificat-list')
@@ -86,7 +102,8 @@ class CertificatUpdateView(UpdateView):
         context['agents'] = Agent.objects.all()
         return context
 
-class CertificatDeleteView(DeleteView):
+class CertificatDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Certificat
+    model_permission_model = Certificat
     template_name = 'formations/certificat_confirm_delete.html'
     success_url = reverse_lazy('certificat-list')

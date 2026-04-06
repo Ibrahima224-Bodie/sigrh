@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ module.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{{ module.nom }} ({{ module.code }})</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Programme" %}</h6>
+                            {% with prog=module.programmes_principaux.first %}
+                            {% if prog %}
+                            <p><a href="{% url 'enseignants:programme_detail' prog.pk %}">{{ prog.nom }}</a></p>
+                            {% else %}
+                            <p>-</p>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Code" %}</h6>
+                            <p>{{ module.code }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Description" %}</h6>
+                            <p>{{ module.description }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Heures totales" %}</h6>
+                            <p>{{ module.nombre_heures }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Ordre" %}</h6>
+                            <p>{{ module.ordre }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if perms.enseignants.change_module %}
+                    <a href="{% url 'enseignants:module_update' module.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> {% trans "Modifier" %}
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'enseignants:module_list' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h5 class="card-title">{% trans "Affectations" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if perms.enseignants.add_affectation %}
+                    <a href="{% url 'enseignants:affectation_create' %}?module_id={{ module.pk }}" class="btn btn-sm btn-success mb-3">
+                        <i class="fas fa-plus"></i> {% trans "Ajouter une affectation" %}
+                    </a>
+                    {% endif %}
+                    {% if affectations %}
+                        <ul class="list-group">
+                            {% for affectation in affectations %}
+                            <li class="list-group-item">
+                                <a href="{% url 'enseignants:professeur_detail' affectation.professeur.pk %}">
+                                    {{ affectation.professeur.prenom }} {{ affectation.professeur.nom }}
+                                </a>
+                                <br/>
+                                <small class="text-muted">{{ affectation.nombre_heures }}h - Priorité: {{ affectation.get_priorite_display }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "Aucune affectation" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

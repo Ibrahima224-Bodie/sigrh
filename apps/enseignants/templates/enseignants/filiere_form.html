@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Modifier la filière" %}{% else %}{% trans "Ajouter une filière" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">
+                        {% if form.instance.pk %}
+                            {% trans "Modifier la filière" %}
+                        {% else %}
+                            {% trans "Ajouter une filière" %}
+                        {% endif %}
+                    </h3>
+                </div>
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            Le champ "Etablissements" accepte une sélection multiple pour créer la même filière dans plusieurs écoles.
+                        </div>
+                        <div class="alert alert-info">
+                            Le nombre total d'heures est calculé automatiquement en fonction des programmes sélectionnés.
+                        </div>
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                {% trans "Mettre à jour" %}
+                            {% else %}
+                                {% trans "Créer" %}
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'enseignants:filiere_list' %}" class="btn btn-secondary">{% trans "Annuler" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    (function () {
+        const programmesSelect = document.getElementById('id_programmes');
+        const heuresTotalInput = document.getElementById('id_nombre_heures_total');
+        const programmeHeuresMap = JSON.parse('{{ programme_heures_map|escapejs }}');
+
+        if (!programmesSelect || !heuresTotalInput) {
+            return;
+        }
+
+        function refreshTotalHeures() {
+            const total = Array.from(programmesSelect.selectedOptions)
+                .reduce((sum, option) => sum + (parseInt(programmeHeuresMap[option.value] || 0, 10)), 0);
+            heuresTotalInput.value = total;
+        }
+
+        programmesSelect.addEventListener('change', refreshTotalHeures);
+        refreshTotalHeures();
+    })();
+</script>
+{% endblock %}

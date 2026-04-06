@@ -13,9 +13,11 @@
             </h1>
         </div>
         <div class="col-md-4 text-right">
+            {% if perms.organigramme.add_structure %}
             <a href="{% url 'structure-create' %}" class="btn btn-success btn-lg">
                 <i class="fas fa-plus"></i> Ajouter une Structure
             </a>
+            {% endif %}
         </div>
     </div>
 
@@ -47,7 +49,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-primary">
             <h6 class="m-0 font-weight-bold text-white">
-                <i class="fas fa-list"></i> Structure Organisationnelle ({{ structures.paginator.count }} total)
+                <i class="fas fa-list"></i> Structure Organisationnelle ({{ paginator.count }} total)
             </h6>
         </div>
         <div class="card-body">
@@ -67,7 +69,7 @@
                         {% for structure in structures %}
                         <tr>
                             <td style="text-align: center; background-color: #f0f0f0; font-weight: bold;">
-                                {{ forloop.counter }}
+                                {{ row_start|add:forloop.counter }}
                             </td>
                             <td>{{ structure.id }}</td>
                             <td><strong>{{ structure.nom }}</strong></td>
@@ -75,15 +77,21 @@
                             <td>{{ structure.structure_parent.nom|default:"Racine" }}</td>
                             <td style="text-align: center;">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    {% if perms.organigramme.view_structure %}
                                     <a href="{% url 'structure-detail' structure.id %}" class="btn btn-info" title="Voir" data-toggle="tooltip">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if perms.organigramme.change_structure %}
                                     <a href="{% url 'structure-update' structure.id %}" class="btn btn-warning" title="Modifier" data-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if perms.organigramme.delete_structure %}
                                     <a href="{% url 'structure-delete' structure.id %}" class="btn btn-danger" title="Supprimer" data-toggle="tooltip">
                                         <i class="fas fa-trash"></i>
                                     </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -144,7 +152,9 @@
     {% else %}
     <div class="alert alert-info alert-dismissible fade show" role="alert">
         <i class="fas fa-info-circle"></i> <strong>Aucune structure trouvée.</strong>
+        {% if perms.organigramme.add_structure %}
         <a href="{% url 'structure-create' %}" class="alert-link">Ajouter une première structure</a>
+        {% endif %}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>

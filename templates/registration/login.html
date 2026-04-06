@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIGRH — Connexion</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <style>
+    body { background: linear-gradient(135deg, #1a237e 0%, #1565c0 50%, #0277bd 100%); }
+    .login-box { width: 380px; }
+    .login-logo a { color: #fff; font-size: 2rem; font-weight: 700; letter-spacing: 1px; }
+    .login-logo small { display: block; font-size: 0.85rem; color: rgba(255,255,255,0.7); font-weight: 300; }
+    .card { border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .card-header { background: #1565c0; border-radius: 12px 12px 0 0 !important; padding: 1.5rem; }
+    .card-header h4 { color: #fff; margin: 0; font-size: 1.1rem; }
+    .btn-primary { background: #1565c0; border-color: #1565c0; }
+    .btn-primary:hover { background: #0d47a1; border-color: #0d47a1; }
+  </style>
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    <a href="#"><i class="fas fa-users-cog mr-2"></i>SIGRH<small>Système de Gestion des Ressources Humaines</small></a>
+  </div>
+
+  <div class="card">
+    <div class="card-header text-center">
+      <h4><i class="fas fa-lock mr-2"></i>Connexion</h4>
+    </div>
+    <div class="card-body">
+      {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible">
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          <i class="fas fa-exclamation-triangle mr-1"></i>
+          Identifiant ou mot de passe incorrect.
+        </div>
+      {% endif %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="input-group mb-3">
+          <input type="text" name="username" class="form-control" placeholder="Nom d'utilisateur" autofocus
+                 value="{{ form.username.value|default:'' }}">
+          <div class="input-group-append">
+            <div class="input-group-text"><span class="fas fa-user"></span></div>
+          </div>
+        </div>
+
+        <div class="input-group mb-3">
+          <input type="password" name="password" class="form-control" placeholder="Mot de passe">
+          <div class="input-group-append">
+            <div class="input-group-text"><span class="fas fa-lock"></span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fas fa-sign-in-alt mr-1"></i> Se connecter
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="card-footer text-center text-muted" style="font-size:0.8rem;">
+      SIGRH &copy; 2026 — Tous droits réservés
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+</body>
+</html>

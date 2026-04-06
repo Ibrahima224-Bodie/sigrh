@@ -2,6 +2,7 @@
 
 {% block content %}
 <div class="row">
+  {% if perms.agents.view_agent %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-info">
       <div class="inner">
@@ -14,6 +15,8 @@
       <a href="#" class="small-box-footer">Plus d'infos <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
+  {% if perms.formations.view_formation %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-success">
       <div class="inner">
@@ -26,5 +29,6 @@
       <a href="#" class="small-box-footer">Plus d'infos <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 </div>
 {% endblock %}

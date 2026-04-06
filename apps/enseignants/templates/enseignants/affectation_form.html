@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Modifier l'affectation" %}{% else %}{% trans "Ajouter une affectation" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">
+                        {% if form.instance.pk %}
+                            {% trans "Modifier l'affectation" %}
+                        {% else %}
+                            {% trans "Ajouter une affectation" %}
+                        {% endif %}
+                    </h3>
+                </div>
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            Le champ "Nombre d'heures" est calculé automatiquement selon le module sélectionné. Le bloc ci-dessous vous montre en direct le reste du besoin et la capacité encore disponible du professeur.
+                        </div>
+                        <div class="row mb-3" id="affectation-preview-panel">
+                            <div class="col-md-4 mb-2">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <div class="text-muted small">Module</div>
+                                    <div class="h5 mb-1" id="preview-module-name">-</div>
+                                    <div class="small">Total: <strong id="preview-module-total">0h</strong></div>
+                                    <div class="small">Déjà couvert: <strong id="preview-module-covered">0h</strong></div>
+                                    <div class="small">Reste: <strong id="preview-module-remaining">0h</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <div class="text-muted small">Professeur</div>
+                                    <div class="h5 mb-1" id="preview-prof-name">-</div>
+                                    <div class="small">Affectée: <strong id="preview-prof-total">0h</strong></div>
+                                    <div class="small">Déjà utilisé: <strong id="preview-prof-assigned">0h</strong></div>
+                                    <div class="small">Disponible: <strong id="preview-prof-remaining">0h</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <div class="text-muted small">Proposition</div>
+                                    <div class="h4 mb-1" id="preview-suggested-hours">0h</div>
+                                    <div class="small">Etat du besoin: <strong id="preview-need-status">-</strong></div>
+                                    <div class="small" id="preview-need-scope">Sélectionnez un établissement, une filière, un module et un professeur.</div>
+                                    <div class="small mt-2" id="preview-entered-hours">Heures saisies: 0h</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                {% trans "Mettre à jour" %}
+                            {% else %}
+                                {% trans "Créer" %}
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'enseignants:affectation_list' %}" class="btn btn-secondary">{% trans "Annuler" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    (function () {
+        const etablissementSelect = document.getElementById('id_etablissement');
+        const filiereSelect = document.getElementById('id_filiere');
+        const programmeSelect = document.getElementById('id_programme');
+        const moduleSelect = document.getElementById('id_module');
+        const professeurSelect = document.getElementById('id_professeur');
+        const nombreHeuresInput = document.getElementById('id_nombre_heures');
+        const heuresAffecteesInput = document.getElementById('id_heures_affectees');
+        const dateDebutInput = document.getElementById('id_date_debut');
+        const dateFinInput = document.getElementById('id_date_fin');
+        const filieresApiUrl = "{% url 'enseignants:ajax-filieres-by-etablissement' %}";
+        const programmesApiUrl = "{% url 'enseignants:ajax-programmes-by-filiere' %}";
+        const modulesApiUrl = "{% url 'enseignants:ajax-modules-by-filiere' %}";
+        const previewApiUrl = "{{ affectation_preview_url|escapejs }}";
+        const currentAffectationId = "{{ current_affectation_id }}";
+        let moduleHeuresMap = JSON.parse('{{ module_heures_map|escapejs }}');
+
+        if (!etablissementSelect || !filiereSelect || !programmeSelect || !moduleSelect || !professeurSelect || !nombreHeuresInput || !heuresAffecteesInput) {
+            return;
+        }
+
+        const previewNodes = {
+            moduleName: document.getElementById('preview-module-name'),
+            moduleTotal: document.getElementById('preview-module-total'),
+            moduleCovered: document.getElementById('preview-module-covered'),
+            moduleRemaining: document.getElementById('preview-module-remaining'),
+            profName: document.getElementById('preview-prof-name'),
+            profTotal: document.getElementById('preview-prof-total'),
+            profAssigned: document.getElementById('preview-prof-assigned'),
+            profRemaining: document.getElementById('preview-prof-remaining'),
+            suggestedHours: document.getElementById('preview-suggested-hours'),
+            needStatus: document.getElementById('preview-need-status'),
+            needScope: document.getElementById('preview-need-scope'),
+            enteredHours: document.getElementById('preview-entered-hours')
+        };
+
+        function triggerSelect2Refresh(selectEl) {
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                window.jQuery(selectEl).trigger('change.select2');
+            }
+        }
+
+        function setModuleOptions(items, selectedValue) {
+            const currentValue = selectedValue || '';
+            moduleSelect.innerHTML = '';
+
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = '---------';
+            moduleSelect.appendChild(emptyOption);
+
+            items.forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = String(item.id);
+                option.textContent = item.nom;
+                moduleSelect.appendChild(option);
+            });
+
+            if (currentValue && items.some(function (item) { return String(item.id) === String(currentValue); })) {
+                moduleSelect.value = String(currentValue);
+            } else {
+                moduleSelect.value = '';
+            }
+
+            triggerSelect2Refresh(moduleSelect);
+            refreshNombreHeures();
+            refreshPreview();
+        }
+
+        function setFiliereOptions(items, selectedValue) {
+            const currentValue = selectedValue || '';
+            filiereSelect.innerHTML = '';
+
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = '---------';
+            filiereSelect.appendChild(emptyOption);
+
+            items.forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = String(item.id);
+                option.textContent = item.nom;
+                filiereSelect.appendChild(option);
+            });
+
+            if (currentValue && items.some(function (item) { return String(item.id) === String(currentValue); })) {
+                filiereSelect.value = String(currentValue);
+            } else {
+                filiereSelect.value = '';
+            }
+
+            triggerSelect2Refresh(filiereSelect);
+            refreshPreview();
+        }
+
+        function setProgrammeOptions(items, selectedValue) {
+            const currentValue = selectedValue || '';
+            programmeSelect.innerHTML = '';
+
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = '---------';
+            programmeSelect.appendChild(emptyOption);
+
+            items.forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = String(item.id);
+                option.textContent = item.nom;
+                programmeSelect.appendChild(option);
+            });
+
+            if (currentValue && items.some(function (item) { return String(item.id) === String(currentValue); })) {
+                programmeSelect.value = String(currentValue);
+            } else {
+                programmeSelect.value = '';
+            }
+
+            triggerSelect2Refresh(programmeSelect);
+            refreshPreview();
+        }
+
+        async function loadFilieresByEtablissement(keepCurrentFiliere) {
+            const etablissementId = etablissementSelect.value;
+            const previousFiliereValue = keepCurrentFiliere ? filiereSelect.value : '';
+
+            if (!etablissementId) {
+                setFiliereOptions([], '');
+                moduleHeuresMap = {};
+                setModuleOptions([], '');
+                return;
+            }
+
+            try {
+                let url = filieresApiUrl + '?etablissement_id=' + encodeURIComponent(etablissementId);
+                if (previousFiliereValue) {
+                    url += '&include_filiere_id=' + encodeURIComponent(previousFiliereValue);
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                const items = data.results || [];
+                setFiliereOptions(items, previousFiliereValue);
+
+                if (filiereSelect.value) {
+                    await loadProgrammesByFiliere(true);
+                } else {
+                    setProgrammeOptions([], '');
+                    moduleHeuresMap = {};
+                    setModuleOptions([], '');
+                }
+            } catch (error) {
+                setFiliereOptions([], '');
+                setProgrammeOptions([], '');
+                moduleHeuresMap = {};
+                setModuleOptions([], '');
+            }
+        }
+
+        async function loadProgrammesByFiliere(keepCurrentProgramme) {
+            const filiereId = filiereSelect.value;
+            const previousProgrammeValue = keepCurrentProgramme ? programmeSelect.value : '';
+
+            if (!filiereId) {
+                setProgrammeOptions([], '');
+                moduleHeuresMap = {};
+                setModuleOptions([], '');
+                return;
+            }
+
+            try {
+                let url = programmesApiUrl + '?filiere_id=' + encodeURIComponent(filiereId);
+                if (previousProgrammeValue) {
+                    url += '&include_programme_id=' + encodeURIComponent(previousProgrammeValue);
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                const items = data.results || [];
+                setProgrammeOptions(items, previousProgrammeValue);
+
+                if (programmeSelect.value) {
+                    await loadModulesByProgramme(true);
+                } else {
+                    moduleHeuresMap = {};
+                    setModuleOptions([], '');
+                }
+            } catch (error) {
+                setProgrammeOptions([], '');
+                moduleHeuresMap = {};
+                setModuleOptions([], '');
+            }
+        }
+
+        async function loadModulesByProgramme(keepCurrentModule) {
+            const filiereId = filiereSelect.value;
+            const programmeId = programmeSelect.value;
+            const previousModuleValue = keepCurrentModule ? moduleSelect.value : '';
+
+            if (!filiereId) {
+                moduleHeuresMap = {};
+                setModuleOptions([], '');
+                return;
+            }
+
+            try {
+                let url = modulesApiUrl + '?filiere_id=' + encodeURIComponent(filiereId);
+                if (programmeId) {
+                    url += '&programme_id=' + encodeURIComponent(programmeId);
+                }
+                if (previousModuleValue) {
+                    url += '&include_module_id=' + encodeURIComponent(previousModuleValue);
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                const items = data.results || [];
+
+                moduleHeuresMap = {};
+                items.forEach(function (item) {
+                    moduleHeuresMap[String(item.id)] = parseInt(item.nombre_heures || 0, 10);
+                });
+
+                setModuleOptions(items, previousModuleValue);
+            } catch (error) {
+                moduleHeuresMap = {};
+                setModuleOptions([], '');
+            }
+        }
+
+        function refreshNombreHeures() {
+            const selectedModuleId = moduleSelect.value;
+            const heures = parseInt(moduleHeuresMap[selectedModuleId] || 0, 10);
+            nombreHeuresInput.value = heures;
+        }
+
+        function renderPreview(data) {
+            const moduleData = data.module || null;
+            const professeurData = data.professeur || null;
+            const besoinData = data.besoin || null;
+            const heuresSaisies = parseInt(heuresAffecteesInput.value || 0, 10);
+
+            previewNodes.moduleName.textContent = moduleData ? moduleData.nom : '-';
+            previewNodes.moduleTotal.textContent = moduleData ? moduleData.heures_totales + 'h' : '0h';
+            previewNodes.moduleCovered.textContent = besoinData ? besoinData.heures_couvertes + 'h' : '0h';
+            previewNodes.moduleRemaining.textContent = besoinData ? besoinData.heures_restantes + 'h' : '0h';
+
+            previewNodes.profName.textContent = professeurData ? professeurData.nom_complet : '-';
+            previewNodes.profTotal.textContent = professeurData ? professeurData.heures_disponibles + 'h' : '0h';
+            previewNodes.profAssigned.textContent = professeurData ? professeurData.heures_utilisees + 'h' : '0h';
+            previewNodes.profRemaining.textContent = professeurData ? professeurData.heures_restantes + 'h' : '0h';
+
+            previewNodes.suggestedHours.textContent = (data.heures_suggerees || 0) + 'h';
+            previewNodes.needStatus.textContent = besoinData ? besoinData.etat : '-';
+            previewNodes.needScope.textContent = besoinData && (besoinData.etablissement || besoinData.filiere)
+                ? [besoinData.etablissement, besoinData.filiere].filter(Boolean).join(' / ')
+                : 'Sélectionnez un établissement, une filière, un module et un professeur.';
+
+            previewNodes.enteredHours.textContent = 'Heures saisies: ' + heuresSaisies + 'h';
+            const maxAffectables = parseInt(data.max_heures_affectables || 0, 10);
+            if (data.professeur_occupe) {
+                previewNodes.enteredHours.className = 'small mt-2 text-danger';
+                previewNodes.enteredHours.textContent = data.conflit_message || 'Professeur déjà occupé sur cette période.';
+                heuresAffecteesInput.value = '0';
+                heuresAffecteesInput.max = '0';
+                return;
+            }
+
+            if (maxAffectables > 0) {
+                heuresAffecteesInput.max = String(maxAffectables);
+            } else {
+                heuresAffecteesInput.removeAttribute('max');
+            }
+
+            if (maxAffectables > 0 && heuresSaisies > maxAffectables) {
+                heuresAffecteesInput.value = String(maxAffectables);
+                previewNodes.enteredHours.textContent = 'Heures saisies: ' + maxAffectables + 'h';
+                previewNodes.enteredHours.className = 'small mt-2 text-danger';
+                previewNodes.enteredHours.textContent += ' - ajusté automatiquement au maximum autorisé';
+                return;
+            }
+
+            if (heuresSaisies > 0 && data.heures_suggerees > 0 && heuresSaisies > data.heures_suggerees) {
+                previewNodes.enteredHours.className = 'small mt-2 text-danger';
+                previewNodes.enteredHours.textContent += ' - au-dessus du maximum conseillé';
+            } else {
+                previewNodes.enteredHours.className = 'small mt-2';
+            }
+        }
+
+        async function refreshPreview() {
+            const params = new URLSearchParams();
+            if (professeurSelect.value) {
+                params.set('professeur_id', professeurSelect.value);
+            }
+            if (moduleSelect.value) {
+                params.set('module_id', moduleSelect.value);
+            }
+            if (etablissementSelect.value) {
+                params.set('etablissement_id', etablissementSelect.value);
+            }
+            if (filiereSelect.value) {
+                params.set('filiere_id', filiereSelect.value);
+            }
+            if (dateDebutInput && dateDebutInput.value) {
+                params.set('date_debut', dateDebutInput.value);
+            }
+            if (dateFinInput && dateFinInput.value) {
+                params.set('date_fin', dateFinInput.value);
+            }
+            if (currentAffectationId) {
+                params.set('current_affectation_id', currentAffectationId);
+            }
+
+            if (!params.get('module_id') && !params.get('professeur_id')) {
+                renderPreview({});
+                return;
+            }
+
+            try {
+                const response = await fetch(previewApiUrl + '?' + params.toString());
+                const data = await response.json();
+                renderPreview(data);
+            } catch (error) {
+                renderPreview({});
+            }
+        }
+
+        etablissementSelect.addEventListener('change', function () {
+            loadFilieresByEtablissement(false);
+        });
+        filiereSelect.addEventListener('change', function () {
+            loadProgrammesByFiliere(false);
+        });
+        programmeSelect.addEventListener('change', function () {
+            loadModulesByProgramme(false);
+        });
+        moduleSelect.addEventListener('change', function () {
+            refreshNombreHeures();
+            refreshPreview();
+        });
+        professeurSelect.addEventListener('change', refreshPreview);
+        heuresAffecteesInput.addEventListener('input', refreshPreview);
+        if (dateDebutInput) {
+            dateDebutInput.addEventListener('change', refreshPreview);
+        }
+        if (dateFinInput) {
+            dateFinInput.addEventListener('change', refreshPreview);
+        }
+
+        if (window.jQuery) {
+            window.jQuery(etablissementSelect).on('select2:select select2:clear change', function () {
+                loadFilieresByEtablissement(false);
+            });
+            window.jQuery(filiereSelect).on('select2:select select2:clear change', function () {
+                loadProgrammesByFiliere(false);
+            });
+            window.jQuery(programmeSelect).on('select2:select select2:clear change', function () {
+                loadModulesByProgramme(false);
+            });
+            window.jQuery(moduleSelect).on('select2:select select2:clear change', function () {
+                refreshNombreHeures();
+                refreshPreview();
+            });
+            window.jQuery(professeurSelect).on('select2:select select2:clear change', refreshPreview);
+        }
+
+        if (etablissementSelect.value) {
+            loadFilieresByEtablissement(true);
+        } else {
+            if (filiereSelect.value) {
+                loadProgrammesByFiliere(true);
+                return;
+            }
+            refreshNombreHeures();
+            refreshPreview();
+        }
+    })();
+</script>
+{% endblock %}

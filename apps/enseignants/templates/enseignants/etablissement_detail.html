@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ etablissement.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{{ etablissement.nom }} ({{ etablissement.code }})</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Localisation" %}</h6>
+                            <p>
+                                {{ etablissement.localisation|default:"-" }}
+                                {% if etablissement.localisation %}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-primary ml-2"
+                                    data-toggle="modal"
+                                    data-target="#gpsMapModal"
+                                    id="btn-open-gps-modal"
+                                >
+                                    <i class="fas fa-map-marker-alt"></i> {% trans "Voir le lieu" %}
+                                </button>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Directeur" %}</h6>
+                            <p>{{ etablissement.directeur }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Email" %}</h6>
+                            <p><a href="mailto:{{ etablissement.email }}">{{ etablissement.email }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Contact" %}</h6>
+                            <p>{{ etablissement.contact }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Date de création" %}</h6>
+                            <p>{{ etablissement.date_creation }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if perms.enseignants.change_etablissement %}
+                    <a href="{% url 'enseignants:etablissement_update' etablissement.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> {% trans "Modifier" %}
+                    </a>
+                    {% endif %}
+                    {% if perms.enseignants.delete_etablissement %}
+                    <a href="{% url 'enseignants:etablissement_delete' etablissement.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> {% trans "Supprimer" %}
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'enseignants:etablissement_list' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h5 class="card-title">{% trans "Filières" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if filieres %}
+                        <ul class="list-group">
+                            {% for filiere in filieres %}
+                            <li class="list-group-item">
+                                <a href="{% url 'enseignants:filiere_detail' filiere.pk %}">{{ filiere.nom }}</a>
+                                <small class="text-muted"> - {{ filiere.code }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "Aucune filière disponible" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header bg-info">
+                    <h5 class="card-title">{% trans "Professeurs" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if professeurs %}
+                        <ul class="list-group">
+                            {% for prof in professeurs %}
+                            <li class="list-group-item">
+                                <a href="{% url 'enseignants:professeur_detail' prof.pk %}">{{ prof.prenom }} {{ prof.nom }}</a>
+                                <small class="text-muted"> - {{ prof.specialite }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "Aucun professeur" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if etablissement.localisation %}
+<div class="modal fade" id="gpsMapModal" tabindex="-1" role="dialog" aria-labelledby="gpsMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gpsMapModalLabel">{% trans "Localisation GPS" %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2 text-muted small">
+                    {% trans "Coordonnées" %}: {{ etablissement.localisation }}
+                </div>
+                <div id="gps-map-error" class="alert alert-warning d-none"></div>
+                <div id="gps-map" style="height: 420px; border-radius: 4px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Fermer" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if etablissement.localisation %}
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+/>
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+></script>
+<script>
+    (function () {
+        const rawLocation = "{{ etablissement.localisation|escapejs }}";
+        const modal = document.getElementById('gpsMapModal');
+        const mapContainer = document.getElementById('gps-map');
+        const errorBox = document.getElementById('gps-map-error');
+
+        if (!modal || !mapContainer || !window.L) {
+            return;
+        }
+
+        function parseCoordinates(value) {
+            const matches = (value || '').match(/-?\d+(?:\.\d+)?/g);
+            if (!matches || matches.length < 2) {
+                return null;
+            }
+
+            let first = parseFloat(matches[0]);
+            let second = parseFloat(matches[1]);
+            if (Number.isNaN(first) || Number.isNaN(second)) {
+                return null;
+            }
+
+            // Accepte "lon, lat" ou "lat, lon" en detectant des bornes GPS plausibles.
+            let lat;
+            let lon;
+            if (Math.abs(first) <= 90 && Math.abs(second) <= 180) {
+                lat = first;
+                lon = second;
+            } else if (Math.abs(second) <= 90 && Math.abs(first) <= 180) {
+                lat = second;
+                lon = first;
+            } else {
+                return null;
+            }
+
+            return { lat: lat, lon: lon };
+        }
+
+        const coords = parseCoordinates(rawLocation);
+        let map = null;
+        let marker = null;
+
+        if (!coords) {
+            mapContainer.classList.add('d-none');
+            errorBox.textContent = 'Coordonnées GPS invalides. Format attendu: lat, lon ou lon, lat.';
+            errorBox.classList.remove('d-none');
+            return;
+        }
+
+        function initMap() {
+            if (!map) {
+                map = L.map('gps-map').setView([coords.lat, coords.lon], 14);
+
+                const carteLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                });
+
+                const satelliteLayer = L.tileLayer(
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    {
+                        maxZoom: 19,
+                        attribution: 'Tiles &copy; Esri'
+                    }
+                );
+
+                carteLayer.addTo(map);
+                L.control.layers(
+                    {
+                        'Carte': carteLayer,
+                        'Satellite': satelliteLayer
+                    },
+                    null,
+                    { position: 'topright' }
+                ).addTo(map);
+
+                marker = L.marker([coords.lat, coords.lon]).addTo(map);
+                marker.bindPopup('{{ etablissement.nom|escapejs }}').openPopup();
+            }
+            map.invalidateSize();
+            map.setView([coords.lat, coords.lon], 14);
+        }
+
+        window.jQuery(modal).on('shown.bs.modal', initMap);
+    })();
+</script>
+{% endif %}
+{% endblock %}

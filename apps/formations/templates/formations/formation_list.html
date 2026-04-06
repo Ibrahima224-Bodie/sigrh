@@ -13,9 +13,11 @@
             </h1>
         </div>
         <div class="col-md-4 text-right">
+            {% if perms.formations.add_formation %}
             <a href="{% url 'formation-create' %}" class="btn btn-success btn-lg">
                 <i class="fas fa-plus"></i> Ajouter une Formation
             </a>
+            {% endif %}
         </div>
     </div>
 
@@ -47,7 +49,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-primary">
             <h6 class="m-0 font-weight-bold text-white">
-                <i class="fas fa-list"></i> Liste des Formations ({{ formations.paginator.count }} total)
+                <i class="fas fa-list"></i> Liste des Formations ({{ paginator.count }} total)
             </h6>
         </div>
         <div class="card-body">
@@ -68,7 +70,7 @@
                         {% for formation in formations %}
                         <tr>
                             <td style="text-align: center; background-color: #f0f0f0; font-weight: bold;">
-                                {{ forloop.counter }}
+                                {{ row_start|add:forloop.counter }}
                             </td>
                             <td><strong>{{ formation.titre }}</strong></td>
                             <td><span class="badge badge-secondary">{{ formation.organisme }}</span></td>
@@ -77,15 +79,21 @@
                             <td>{{ formation.lieu }}</td>
                             <td style="text-align: center;">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    {% if perms.formations.view_formation %}
                                     <a href="{% url 'formation-detail' formation.id %}" class="btn btn-info" title="Voir" data-toggle="tooltip">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if perms.formations.change_formation %}
                                     <a href="{% url 'formation-update' formation.id %}" class="btn btn-warning" title="Modifier" data-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if perms.formations.delete_formation %}
                                     <a href="{% url 'formation-delete' formation.id %}" class="btn btn-danger" title="Supprimer" data-toggle="tooltip">
                                         <i class="fas fa-trash"></i>
                                     </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -146,7 +154,9 @@
     {% else %}
     <div class="alert alert-info alert-dismissible fade show" role="alert">
         <i class="fas fa-info-circle"></i> <strong>Aucune formation trouvée.</strong>
+        {% if perms.formations.add_formation %}
         <a href="{% url 'formation-create' %}" class="alert-link">Ajouter une première formation</a>
+        {% endif %}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>

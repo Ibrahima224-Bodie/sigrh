@@ -10,10 +10,19 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   {% load static %}
  <link rel="icon" href="{% static 'adminlte/img/favicon.png' %}" type="image/png">
+  <style>
+    .required-indicator {
+      color: #dc3545;
+      font-weight: 700;
+      margin-left: 0.2rem;
+    }
+  </style>
 
 </head>
 <body class="hold-transition sidebar-mini">
@@ -26,7 +35,7 @@
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="{% url 'dashboard' %}" class="nav-link">Accueil</a>
+        <a href="{% if perms.dashboard.access_dashboard %}{% url 'dashboard' %}{% else %}{% url 'profile' %}{% endif %}" class="nav-link">Accueil</a>
       </li>
     </ul>
     <!-- Right navbar links -->
@@ -36,65 +45,218 @@
           <i class="fas fa-expand-arrows-alt"></i>
         </a>
       </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item dropdown">
+          <a class="nav-link" data-toggle="dropdown" href="#">
+            {% if user.photo %}
+            <img src="{{ user.photo.url }}" alt="Photo de profil" class="img-circle mr-1" style="width:26px;height:26px;object-fit:cover;">
+            {% else %}
+            <i class="fas fa-user-circle mr-1"></i>
+            {% endif %}
+            <span class="d-none d-sm-inline">{{ user.get_full_name|default:user.username }}</span>
+            {% if user.role %}
+            <span class="badge badge-info ml-1">{{ user.get_role_display }}</span>
+            {% endif %}
+            <i class="fas fa-caret-down ml-1"></i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a href="{% url 'profile' %}" class="dropdown-item">
+              <i class="fas fa-user-circle mr-2"></i>Mon profil
+            </a>
+            <div class="dropdown-divider"></div>
+            <form method="post" action="{% url 'logout' %}" class="m-0 p-0">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item">
+                <i class="fas fa-sign-out-alt mr-2"></i>Se déconnecter
+              </button>
+            </form>
+          </div>
+        </li>
+        {% endif %}
     </ul>
   </nav>
   <!-- /.navbar -->
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="{% url 'dashboard' %}" class="brand-link">
+    <a href="{% if perms.dashboard.access_dashboard %}{% url 'dashboard' %}{% else %}{% url 'profile' %}{% endif %}" class="brand-link">
       <span class="brand-text font-weight-light">SIGRH</span>
     </a>
     <!-- Sidebar -->
     <div class="sidebar">
       <!-- Sidebar Menu -->
       <nav class="mt-2">
+        {% with current_url_name=request.resolver_match.url_name current_namespace=request.resolver_match.namespace %}
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          {% if perms.dashboard.access_dashboard %}
           <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link">
+            <a href="{% if perms.dashboard.access_dashboard %}{% url 'dashboard' %}{% else %}#{% endif %}" class="nav-link {% if current_url_name == 'dashboard' %}active{% endif %}">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>Tableau de bord</p>
             </a>
           </li>
+          {% endif %}
+          {% if perms.enseignants.view_professeur or perms.enseignants.view_affectation or perms.enseignants.view_module %}
+          <li class="nav-item has-treeview {% if current_namespace == 'enseignants' and current_url_name == 'professeur_list' or current_namespace == 'enseignants' and current_url_name == 'professeur_detail' or current_namespace == 'enseignants' and current_url_name == 'professeur_create' or current_namespace == 'enseignants' and current_url_name == 'professeur_update' or current_namespace == 'enseignants' and current_url_name == 'professeur_delete' or current_namespace == 'enseignants' and current_url_name == 'affectation_list' or current_namespace == 'enseignants' and current_url_name == 'affectation_detail' or current_namespace == 'enseignants' and current_url_name == 'affectation_create' or current_namespace == 'enseignants' and current_url_name == 'affectation_update' or current_namespace == 'enseignants' and current_url_name == 'affectation_delete' or current_namespace == 'enseignants' and current_url_name == 'besoin_list' %}menu-open{% endif %}">
+            <a href="{% if perms.enseignants.view_professeur %}{% url 'enseignants:professeur_list' %}{% else %}#{% endif %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'professeur_list' or current_namespace == 'enseignants' and current_url_name == 'professeur_detail' or current_namespace == 'enseignants' and current_url_name == 'professeur_create' or current_namespace == 'enseignants' and current_url_name == 'professeur_update' or current_namespace == 'enseignants' and current_url_name == 'professeur_delete' or current_namespace == 'enseignants' and current_url_name == 'affectation_list' or current_namespace == 'enseignants' and current_url_name == 'affectation_detail' or current_namespace == 'enseignants' and current_url_name == 'affectation_create' or current_namespace == 'enseignants' and current_url_name == 'affectation_update' or current_namespace == 'enseignants' and current_url_name == 'affectation_delete' or current_namespace == 'enseignants' and current_url_name == 'besoin_list' %}active{% endif %}">
+              <i class="nav-icon fas fa-chalkboard-teacher"></i>
+              <p>Enseignants <i class="fas fa-angle-left right"></i></p>
+            </a>
+            <ul class="nav nav-treeview" {% if current_namespace == 'enseignants' and current_url_name == 'professeur_list' or current_namespace == 'enseignants' and current_url_name == 'professeur_detail' or current_namespace == 'enseignants' and current_url_name == 'professeur_create' or current_namespace == 'enseignants' and current_url_name == 'professeur_update' or current_namespace == 'enseignants' and current_url_name == 'professeur_delete' or current_namespace == 'enseignants' and current_url_name == 'affectation_list' or current_namespace == 'enseignants' and current_url_name == 'affectation_detail' or current_namespace == 'enseignants' and current_url_name == 'affectation_create' or current_namespace == 'enseignants' and current_url_name == 'affectation_update' or current_namespace == 'enseignants' and current_url_name == 'affectation_delete' or current_namespace == 'enseignants' and current_url_name == 'besoin_list' %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+              {% if perms.enseignants.view_professeur %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:professeur_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'professeur_list' or current_namespace == 'enseignants' and current_url_name == 'professeur_detail' or current_namespace == 'enseignants' and current_url_name == 'professeur_create' or current_namespace == 'enseignants' and current_url_name == 'professeur_update' or current_namespace == 'enseignants' and current_url_name == 'professeur_delete' %}active{% endif %}">
+                  <i class="fas fa-user-tie nav-icon"></i>
+                  <p>Professeurs</p>
+                </a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_affectation %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:affectation_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'affectation_list' or current_namespace == 'enseignants' and current_url_name == 'affectation_detail' or current_namespace == 'enseignants' and current_url_name == 'affectation_create' or current_namespace == 'enseignants' and current_url_name == 'affectation_update' or current_namespace == 'enseignants' and current_url_name == 'affectation_delete' %}active{% endif %}">
+                  <i class="fas fa-tasks nav-icon"></i>
+                  <p>Affectations</p>
+                </a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_besoin %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:besoin_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'besoin_list' %}active{% endif %}">
+                  <i class="fas fa-clipboard-list nav-icon"></i>
+                  <p>Besoins</p>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
+          </li>
+          {% endif %}
+          {% if perms.agents.view_agent or perms.formations.view_formation or perms.carrieres.view_carriere or perms.absences.view_conge or perms.organigramme.view_structure %}
           <li class="nav-header">Gestion RH</li>
+          {% endif %}
+          {% if perms.agents.view_agent %}
           <li class="nav-item">
-            <a href="{% url 'agent-list' %}" class="nav-link">
+            <a href="{% url 'agent-list' %}" class="nav-link {% if current_url_name == 'agent-list' or current_url_name == 'agent-detail' or current_url_name == 'agent-create' or current_url_name == 'agent-update' or current_url_name == 'agent-delete' %}active{% endif %}">
               <i class="nav-icon fas fa-users"></i>
               <p>Agents</p>
             </a>
           </li>
+          {% endif %}
+          {% if perms.formations.view_formation %}
           <li class="nav-item">
-            <a href="{% url 'formation-list' %}" class="nav-link">
+            <a href="{% url 'formation-list' %}" class="nav-link {% if current_url_name == 'formation-list' or current_url_name == 'formation-detail' or current_url_name == 'formation-create' or current_url_name == 'formation-update' or current_url_name == 'formation-delete' %}active{% endif %}">
               <i class="nav-icon fas fa-graduation-cap"></i>
               <p>Formations</p>
             </a>
           </li>
+          {% endif %}
+          {% if perms.carrieres.view_carriere %}
           <li class="nav-item">
-            <a href="{% url 'carriere-list' %}" class="nav-link">
+            <a href="{% url 'carriere-list' %}" class="nav-link {% if current_url_name == 'carriere-list' or current_url_name == 'carriere-detail' or current_url_name == 'carriere-create' or current_url_name == 'carriere-update' or current_url_name == 'carriere-delete' %}active{% endif %}">
               <i class="nav-icon fas fa-suitcase"></i>
               <p>Carrières</p>
             </a>
           </li>
+          {% endif %}
+          {% if perms.absences.view_conge %}
           <li class="nav-item">
-            <a href="{% url 'conge-list' %}" class="nav-link">
+            <a href="{% url 'conge-list' %}" class="nav-link {% if current_url_name == 'conge-list' or current_url_name == 'conge-detail' or current_url_name == 'conge-create' or current_url_name == 'conge-update' or current_url_name == 'conge-delete' %}active{% endif %}">
               <i class="nav-icon fas fa-door-open"></i>
               <p>Congés</p>
             </a>
           </li>
+          {% endif %}
+          {% if user.is_superuser or perms.comptes.view_user or perms.comptes.add_user or perms.comptes.change_user or perms.comptes.delete_user or perms.auth.view_group or perms.auth.change_group or perms.auth.view_permission or perms.auth.change_permission %}
           <li class="nav-header">Administration</li>
-          <li class="nav-item">
-            <a href="{% url 'user-list' %}" class="nav-link">
-              <i class="nav-icon fas fa-lock"></i>
-              <p>Comptes</p>
+          <li class="nav-item has-treeview {% if current_url_name == 'user-list' or current_url_name == 'user-detail' or current_url_name == 'user-create' or current_url_name == 'user-update' or current_url_name == 'user-delete' or current_url_name == 'role-list' or current_url_name == 'role-permission-update' or current_url_name == 'permission-list' %}menu-open{% endif %}">
+            <a href="#" class="nav-link {% if current_url_name == 'user-list' or current_url_name == 'user-detail' or current_url_name == 'user-create' or current_url_name == 'user-update' or current_url_name == 'user-delete' or current_url_name == 'role-list' or current_url_name == 'role-permission-update' or current_url_name == 'permission-list' %}active{% endif %}">
+              <i class="nav-icon fas fa-users-cog"></i>
+              <p>Utilisateurs <i class="fas fa-angle-left right"></i></p>
             </a>
+            <ul class="nav nav-treeview" {% if current_url_name == 'user-list' or current_url_name == 'user-detail' or current_url_name == 'user-create' or current_url_name == 'user-update' or current_url_name == 'user-delete' or current_url_name == 'role-list' or current_url_name == 'role-permission-update' or current_url_name == 'permission-list' %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+              {% if user.is_superuser or perms.comptes.view_user or perms.comptes.add_user or perms.comptes.change_user or perms.comptes.delete_user %}
+              <li class="nav-item">
+                <a href="{% url 'user-list' %}" class="nav-link {% if current_url_name == 'user-list' or current_url_name == 'user-detail' or current_url_name == 'user-create' or current_url_name == 'user-update' or current_url_name == 'user-delete' %}active{% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Utilisateurs</p>
+                </a>
+              </li>
+              {% endif %}
+              {% if user.is_superuser or perms.auth.view_group or perms.auth.change_group or perms.auth.change_permission %}
+              <li class="nav-item">
+                <a href="{% url 'role-list' %}" class="nav-link {% if current_url_name == 'role-list' or current_url_name == 'role-permission-update' %}active{% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Rôles</p>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
           </li>
+          {% if perms.enseignants.view_region or perms.enseignants.view_prefecture or perms.enseignants.view_commune or perms.enseignants.view_quartier or perms.enseignants.view_secteur or perms.enseignants.view_etablissement or perms.enseignants.view_filiere or perms.enseignants.view_programme or perms.enseignants.view_module %}
+          <li class="nav-item has-treeview {% if current_namespace == 'enseignants' and current_url_name == 'region_list' or current_namespace == 'enseignants' and current_url_name == 'region_create' or current_namespace == 'enseignants' and current_url_name == 'region_update' or current_namespace == 'enseignants' and current_url_name == 'region_delete' or current_namespace == 'enseignants' and current_url_name == 'prefecture_list' or current_namespace == 'enseignants' and current_url_name == 'prefecture_create' or current_namespace == 'enseignants' and current_url_name == 'prefecture_update' or current_namespace == 'enseignants' and current_url_name == 'prefecture_delete' or current_namespace == 'enseignants' and current_url_name == 'commune_list' or current_namespace == 'enseignants' and current_url_name == 'commune_create' or current_namespace == 'enseignants' and current_url_name == 'commune_update' or current_namespace == 'enseignants' and current_url_name == 'commune_delete' or current_namespace == 'enseignants' and current_url_name == 'quartier_list' or current_namespace == 'enseignants' and current_url_name == 'quartier_create' or current_namespace == 'enseignants' and current_url_name == 'quartier_update' or current_namespace == 'enseignants' and current_url_name == 'quartier_delete' or current_namespace == 'enseignants' and current_url_name == 'secteur_list' or current_namespace == 'enseignants' and current_url_name == 'secteur_create' or current_namespace == 'enseignants' and current_url_name == 'secteur_update' or current_namespace == 'enseignants' and current_url_name == 'secteur_delete' or current_namespace == 'enseignants' and current_url_name == 'etablissement_list' or current_namespace == 'enseignants' and current_url_name == 'etablissement_detail' or current_namespace == 'enseignants' and current_url_name == 'etablissement_create' or current_namespace == 'enseignants' and current_url_name == 'etablissement_update' or current_namespace == 'enseignants' and current_url_name == 'etablissement_delete' or current_namespace == 'enseignants' and current_url_name == 'filiere_list' or current_namespace == 'enseignants' and current_url_name == 'filiere_detail' or current_namespace == 'enseignants' and current_url_name == 'filiere_create' or current_namespace == 'enseignants' and current_url_name == 'filiere_update' or current_namespace == 'enseignants' and current_url_name == 'filiere_delete' or current_namespace == 'enseignants' and current_url_name == 'programme_list' or current_namespace == 'enseignants' and current_url_name == 'programme_create' or current_namespace == 'enseignants' and current_url_name == 'programme_update' or current_namespace == 'enseignants' and current_url_name == 'programme_delete' or current_namespace == 'enseignants' and current_url_name == 'module_list' or current_namespace == 'enseignants' and current_url_name == 'module_create' or current_namespace == 'enseignants' and current_url_name == 'module_update' or current_namespace == 'enseignants' and current_url_name == 'module_delete' %}menu-open{% endif %}">
+            <a href="#" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'region_list' or current_namespace == 'enseignants' and current_url_name == 'region_create' or current_namespace == 'enseignants' and current_url_name == 'region_update' or current_namespace == 'enseignants' and current_url_name == 'region_delete' or current_namespace == 'enseignants' and current_url_name == 'prefecture_list' or current_namespace == 'enseignants' and current_url_name == 'prefecture_create' or current_namespace == 'enseignants' and current_url_name == 'prefecture_update' or current_namespace == 'enseignants' and current_url_name == 'prefecture_delete' or current_namespace == 'enseignants' and current_url_name == 'commune_list' or current_namespace == 'enseignants' and current_url_name == 'commune_create' or current_namespace == 'enseignants' and current_url_name == 'commune_update' or current_namespace == 'enseignants' and current_url_name == 'commune_delete' or current_namespace == 'enseignants' and current_url_name == 'quartier_list' or current_namespace == 'enseignants' and current_url_name == 'quartier_create' or current_namespace == 'enseignants' and current_url_name == 'quartier_update' or current_namespace == 'enseignants' and current_url_name == 'quartier_delete' or current_namespace == 'enseignants' and current_url_name == 'secteur_list' or current_namespace == 'enseignants' and current_url_name == 'secteur_create' or current_namespace == 'enseignants' and current_url_name == 'secteur_update' or current_namespace == 'enseignants' and current_url_name == 'secteur_delete' or current_namespace == 'enseignants' and current_url_name == 'etablissement_list' or current_namespace == 'enseignants' and current_url_name == 'etablissement_detail' or current_namespace == 'enseignants' and current_url_name == 'etablissement_create' or current_namespace == 'enseignants' and current_url_name == 'etablissement_update' or current_namespace == 'enseignants' and current_url_name == 'etablissement_delete' or current_namespace == 'enseignants' and current_url_name == 'filiere_list' or current_namespace == 'enseignants' and current_url_name == 'filiere_detail' or current_namespace == 'enseignants' and current_url_name == 'filiere_create' or current_namespace == 'enseignants' and current_url_name == 'filiere_update' or current_namespace == 'enseignants' and current_url_name == 'filiere_delete' or current_namespace == 'enseignants' and current_url_name == 'programme_list' or current_namespace == 'enseignants' and current_url_name == 'programme_create' or current_namespace == 'enseignants' and current_url_name == 'programme_update' or current_namespace == 'enseignants' and current_url_name == 'programme_delete' or current_namespace == 'enseignants' and current_url_name == 'module_list' or current_namespace == 'enseignants' and current_url_name == 'module_create' or current_namespace == 'enseignants' and current_url_name == 'module_update' or current_namespace == 'enseignants' and current_url_name == 'module_delete' %}active{% endif %}">
+              <i class="nav-icon fas fa-database"></i>
+              <p>Referentiels <i class="fas fa-angle-left right"></i></p>
+            </a>
+            <ul class="nav nav-treeview" {% if current_namespace == 'enseignants' and current_url_name == 'region_list' or current_namespace == 'enseignants' and current_url_name == 'region_create' or current_namespace == 'enseignants' and current_url_name == 'region_update' or current_namespace == 'enseignants' and current_url_name == 'region_delete' or current_namespace == 'enseignants' and current_url_name == 'prefecture_list' or current_namespace == 'enseignants' and current_url_name == 'prefecture_create' or current_namespace == 'enseignants' and current_url_name == 'prefecture_update' or current_namespace == 'enseignants' and current_url_name == 'prefecture_delete' or current_namespace == 'enseignants' and current_url_name == 'commune_list' or current_namespace == 'enseignants' and current_url_name == 'commune_create' or current_namespace == 'enseignants' and current_url_name == 'commune_update' or current_namespace == 'enseignants' and current_url_name == 'commune_delete' or current_namespace == 'enseignants' and current_url_name == 'quartier_list' or current_namespace == 'enseignants' and current_url_name == 'quartier_create' or current_namespace == 'enseignants' and current_url_name == 'quartier_update' or current_namespace == 'enseignants' and current_url_name == 'quartier_delete' or current_namespace == 'enseignants' and current_url_name == 'secteur_list' or current_namespace == 'enseignants' and current_url_name == 'secteur_create' or current_namespace == 'enseignants' and current_url_name == 'secteur_update' or current_namespace == 'enseignants' and current_url_name == 'secteur_delete' or current_namespace == 'enseignants' and current_url_name == 'etablissement_list' or current_namespace == 'enseignants' and current_url_name == 'etablissement_detail' or current_namespace == 'enseignants' and current_url_name == 'etablissement_create' or current_namespace == 'enseignants' and current_url_name == 'etablissement_update' or current_namespace == 'enseignants' and current_url_name == 'etablissement_delete' or current_namespace == 'enseignants' and current_url_name == 'filiere_list' or current_namespace == 'enseignants' and current_url_name == 'filiere_detail' or current_namespace == 'enseignants' and current_url_name == 'filiere_create' or current_namespace == 'enseignants' and current_url_name == 'filiere_update' or current_namespace == 'enseignants' and current_url_name == 'filiere_delete' or current_namespace == 'enseignants' and current_url_name == 'programme_list' or current_namespace == 'enseignants' and current_url_name == 'programme_create' or current_namespace == 'enseignants' and current_url_name == 'programme_update' or current_namespace == 'enseignants' and current_url_name == 'programme_delete' or current_namespace == 'enseignants' and current_url_name == 'module_list' or current_namespace == 'enseignants' and current_url_name == 'module_create' or current_namespace == 'enseignants' and current_url_name == 'module_update' or current_namespace == 'enseignants' and current_url_name == 'module_delete' %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+              {% if perms.enseignants.view_region %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:region_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'region_list' or current_namespace == 'enseignants' and current_url_name == 'region_create' or current_namespace == 'enseignants' and current_url_name == 'region_update' or current_namespace == 'enseignants' and current_url_name == 'region_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Regions</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_prefecture %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:prefecture_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'prefecture_list' or current_namespace == 'enseignants' and current_url_name == 'prefecture_create' or current_namespace == 'enseignants' and current_url_name == 'prefecture_update' or current_namespace == 'enseignants' and current_url_name == 'prefecture_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Prefectures</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_commune %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:commune_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'commune_list' or current_namespace == 'enseignants' and current_url_name == 'commune_create' or current_namespace == 'enseignants' and current_url_name == 'commune_update' or current_namespace == 'enseignants' and current_url_name == 'commune_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Communes</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_quartier %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:quartier_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'quartier_list' or current_namespace == 'enseignants' and current_url_name == 'quartier_create' or current_namespace == 'enseignants' and current_url_name == 'quartier_update' or current_namespace == 'enseignants' and current_url_name == 'quartier_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Quartiers</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_secteur %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:secteur_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'secteur_list' or current_namespace == 'enseignants' and current_url_name == 'secteur_create' or current_namespace == 'enseignants' and current_url_name == 'secteur_update' or current_namespace == 'enseignants' and current_url_name == 'secteur_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Secteurs</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_etablissement %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:etablissement_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'etablissement_list' or current_namespace == 'enseignants' and current_url_name == 'etablissement_detail' or current_namespace == 'enseignants' and current_url_name == 'etablissement_create' or current_namespace == 'enseignants' and current_url_name == 'etablissement_update' or current_namespace == 'enseignants' and current_url_name == 'etablissement_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Etablissements</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_filiere %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:filiere_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'filiere_list' or current_namespace == 'enseignants' and current_url_name == 'filiere_detail' or current_namespace == 'enseignants' and current_url_name == 'filiere_create' or current_namespace == 'enseignants' and current_url_name == 'filiere_update' or current_namespace == 'enseignants' and current_url_name == 'filiere_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Filieres</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_programme %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:programme_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'programme_list' or current_namespace == 'enseignants' and current_url_name == 'programme_create' or current_namespace == 'enseignants' and current_url_name == 'programme_update' or current_namespace == 'enseignants' and current_url_name == 'programme_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Programmes</p></a>
+              </li>
+              {% endif %}
+              {% if perms.enseignants.view_module %}
+              <li class="nav-item">
+                <a href="{% url 'enseignants:module_list' %}" class="nav-link {% if current_namespace == 'enseignants' and current_url_name == 'module_list' or current_namespace == 'enseignants' and current_url_name == 'module_create' or current_namespace == 'enseignants' and current_url_name == 'module_update' or current_namespace == 'enseignants' and current_url_name == 'module_delete' %}active{% endif %}"><i class="far fa-circle nav-icon"></i><p>Modules</p></a>
+              </li>
+              {% endif %}
+            </ul>
+          </li>
+          {% endif %}
+          {% endif %}
+          {% if perms.organigramme.view_structure %}
           <li class="nav-item">
-            <a href="{% url 'structure-list' %}" class="nav-link">
+            <a href="{% url 'structure-list' %}" class="nav-link {% if current_url_name == 'structure-list' or current_url_name == 'structure-detail' or current_url_name == 'structure-create' or current_url_name == 'structure-update' or current_url_name == 'structure-delete' %}active{% endif %}">
               <i class="nav-icon fas fa-chart-bar"></i>
               <p>Organigramme</p>
             </a>
           </li>
+          {% endif %}
         </ul>
+        {% endwith %}
       </nav>
     </div>
   </aside>
@@ -124,15 +286,383 @@
     <strong>Copyright &copy; {% now "Y" %} SIGRH.</strong> Tous droits réservés.
   </footer>
 </div>
+
+{% if user.is_authenticated and perms.assistant_ia.use_ai_assistant %}
+<div id="sigrh-chatbot-root" style="position:fixed; right:18px; bottom:18px; z-index:2100;">
+  <button id="sigrh-chatbot-toggle" class="btn btn-primary rounded-circle" style="width:58px; height:58px; box-shadow:0 8px 20px rgba(0,0,0,.25);" title="Assistant IA">
+    <i class="fas fa-robot"></i>
+  </button>
+
+  <div id="sigrh-chatbot-panel" class="card shadow" style="display:none; width:360px; max-width:90vw; margin-top:10px;">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <strong>Assistant IA SIGRH</strong>
+      <button id="sigrh-chatbot-close" type="button" class="btn btn-sm btn-light">Fermer</button>
+    </div>
+    <div class="card-body p-2" style="height:320px; overflow:auto; background:#f7f9fc;" id="sigrh-chatbot-messages">
+      <div class="small p-2 mb-2 bg-white border rounded">Bonjour. Posez une question sur les donnees SIGRH (texte ou voix).</div>
+    </div>
+    <div class="card-footer">
+      <div class="input-group">
+        <input id="sigrh-chatbot-input" type="text" class="form-control" placeholder="Ex: Combien de filieres actives ?">
+        <div class="input-group-append">
+          <button id="sigrh-chatbot-mic" class="btn btn-outline-secondary" type="button" title="Dicter"><i class="fas fa-microphone"></i></button>
+          <button id="sigrh-chatbot-send" class="btn btn-primary" type="button">Envoyer</button>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between mt-2">
+        <small id="sigrh-chatbot-status" class="text-muted">Pret.</small>
+        <button id="sigrh-chatbot-speak-last" type="button" class="btn btn-link btn-sm p-0">Lire la reponse</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 <!-- ./wrapper -->
 <!-- REQUIRED SCRIPTS -->
 <!-- jQuery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- Bootstrap 4 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <!-- AdminLTE App -->
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function () {
+    function initSearchableCombos() {
+      if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) {
+        return;
+      }
+
+      window.jQuery('form select.form-control')
+        .not('[multiple]')
+        .not('.js-no-select2')
+        .each(function () {
+          var $select = window.jQuery(this);
+          if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+          }
+
+          $select.select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: $select.attr('data-placeholder') || 'Rechercher...',
+            allowClear: !$select.prop('required')
+          });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initSearchableCombos);
+  })();
+
+  (function () {
+    function findFieldLabel(field) {
+      if (!field || !field.id) {
+        return null;
+      }
+      try {
+        return document.querySelector('label[for="' + CSS.escape(field.id) + '"]');
+      } catch (error) {
+        return document.querySelector('label[for="' + field.id.replace(/"/g, '\\"') + '"]');
+      }
+    }
+
+    function markRequiredLabel(label) {
+      if (!label || label.querySelector('.required-indicator')) {
+        return;
+      }
+      var indicator = document.createElement('span');
+      indicator.className = 'required-indicator';
+      indicator.setAttribute('aria-hidden', 'true');
+      indicator.textContent = '*';
+      label.appendChild(indicator);
+    }
+
+    function annotateRequiredFields(root) {
+      var scope = root || document;
+      var fields = scope.querySelectorAll('form input, form select, form textarea');
+
+      fields.forEach(function (field) {
+        if (field.disabled || field.type === 'hidden') {
+          return;
+        }
+
+        if (!field.required && field.getAttribute('aria-required') !== 'true') {
+          return;
+        }
+
+        markRequiredLabel(findFieldLabel(field));
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      annotateRequiredFields(document);
+
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          mutation.addedNodes.forEach(function (node) {
+            if (node.nodeType !== 1) {
+              return;
+            }
+            if (node.matches && node.matches('form, .form-group, .form-row, .modal')) {
+              annotateRequiredFields(node);
+              return;
+            }
+            if (node.querySelector) {
+              annotateRequiredFields(node);
+            }
+          });
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    });
+  })();
+
+  (function () {
+    var root = document.getElementById('sigrh-chatbot-root');
+    if (!root) {
+      return;
+    }
+
+    var panel = document.getElementById('sigrh-chatbot-panel');
+    var toggle = document.getElementById('sigrh-chatbot-toggle');
+    var closeBtn = document.getElementById('sigrh-chatbot-close');
+    var input = document.getElementById('sigrh-chatbot-input');
+    var sendBtn = document.getElementById('sigrh-chatbot-send');
+    var micBtn = document.getElementById('sigrh-chatbot-mic');
+    var messagesEl = document.getElementById('sigrh-chatbot-messages');
+    var statusEl = document.getElementById('sigrh-chatbot-status');
+    var speakBtn = document.getElementById('sigrh-chatbot-speak-last');
+    var lastAnswer = '';
+
+    function getCookie(name) {
+      var value = '; ' + document.cookie;
+      var parts = value.split('; ' + name + '=');
+      if (parts.length === 2) {
+        return parts.pop().split(';').shift();
+      }
+      return '';
+    }
+
+    function addMessage(text, role) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'p-2 mb-2 border rounded small ' + (role === 'user' ? 'bg-primary text-white ml-4' : 'bg-white mr-4');
+      wrapper.textContent = text;
+      messagesEl.appendChild(wrapper);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      if (role !== 'user') {
+        lastAnswer = text;
+      }
+    }
+
+    async function sendQuestion() {
+      var q = (input.value || '').trim();
+      if (!q) {
+        return;
+      }
+      input.value = '';
+      addMessage(q, 'user');
+      statusEl.textContent = 'Traitement...';
+      sendBtn.disabled = true;
+
+      try {
+        var response = await fetch('{% url "chatbot-query" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({ question: q })
+        });
+        var payload = await response.json();
+        if (!response.ok || !payload.ok) {
+          addMessage(payload.error || 'Erreur lors de la reponse.', 'bot');
+          statusEl.textContent = 'Erreur.';
+        } else {
+          addMessage(payload.answer || 'Pas de reponse.', 'bot');
+          if (payload.action && payload.action.type === 'navigate' && payload.action.url) {
+            statusEl.textContent = 'Navigation...';
+            window.setTimeout(function () {
+              window.location.href = payload.action.url;
+            }, 500);
+          } else {
+            statusEl.textContent = 'Repondu.';
+          }
+        }
+      } catch (e) {
+        addMessage('Impossible de contacter le chatbot.', 'bot');
+        statusEl.textContent = 'Hors ligne.';
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    toggle.addEventListener('click', function () {
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      if (panel.style.display === 'block') {
+        input.focus();
+      }
+    });
+    closeBtn.addEventListener('click', function () {
+      panel.style.display = 'none';
+    });
+    sendBtn.addEventListener('click', sendQuestion);
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        sendQuestion();
+      }
+    });
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      var recognition = new SpeechRecognition();
+      recognition.lang = 'fr-FR';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      micBtn.addEventListener('click', function () {
+        try {
+          recognition.start();
+          statusEl.textContent = 'Ecoute en cours...';
+        } catch (e) {
+          statusEl.textContent = 'Micro indisponible.';
+        }
+      });
+
+      recognition.onresult = function (event) {
+        var text = event.results[0][0].transcript || '';
+        input.value = text;
+        statusEl.textContent = 'Texte vocal capture.';
+      };
+      recognition.onerror = function () {
+        statusEl.textContent = 'Erreur de reconnaissance vocale.';
+      };
+      recognition.onend = function () {
+        if (statusEl.textContent === 'Ecoute en cours...') {
+          statusEl.textContent = 'Ecoute terminee.';
+        }
+      };
+    } else {
+      micBtn.disabled = true;
+      micBtn.title = 'Reconnaissance vocale non supportee par ce navigateur';
+    }
+
+    speakBtn.addEventListener('click', function () {
+      if (!lastAnswer || !window.speechSynthesis) {
+        return;
+      }
+      var utter = new SpeechSynthesisUtterance(lastAnswer);
+      utter.lang = 'fr-FR';
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+      statusEl.textContent = 'Lecture vocale en cours...';
+      utter.onend = function () {
+        statusEl.textContent = 'Pret.';
+      };
+    });
+  })();
+
+  (function () {
+    var options = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+
+    function currentPerPage(params) {
+      var raw = parseInt(params.get('per_page'), 10);
+      return options.indexOf(raw) !== -1 ? raw : 50;
+    }
+
+    function buildPerPageControl(selected) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'd-flex justify-content-end align-items-center mb-2';
+
+      var label = document.createElement('label');
+      label.className = 'mb-0 mr-2';
+      label.textContent = 'Lignes par page';
+
+      var select = document.createElement('select');
+      select.className = 'form-control form-control-sm';
+      select.style.width = '130px';
+
+      options.forEach(function (value) {
+        var opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = value;
+        if (value === selected) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
+
+      select.addEventListener('change', function () {
+        var params = new URLSearchParams(window.location.search);
+        params.set('per_page', select.value);
+        params.set('page', '1');
+        window.location.search = params.toString();
+      });
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(select);
+      return wrapper;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var paginationUls = document.querySelectorAll('ul.pagination');
+      if (!paginationUls.length) {
+        return;
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      var selected = currentPerPage(params);
+
+      paginationUls.forEach(function (ul) {
+        var container = ul.closest('nav') || ul.parentElement;
+        if (!container) {
+          return;
+        }
+        if (!container.previousElementSibling || !container.previousElementSibling.classList.contains('js-per-page-control')) {
+          var control = buildPerPageControl(selected);
+          control.classList.add('js-per-page-control');
+          container.parentNode.insertBefore(control, container);
+        }
+      });
+
+      document.querySelectorAll('a.page-link[href]').forEach(function (link) {
+        var href = link.getAttribute('href');
+        if (!href || href.indexOf('javascript:') === 0 || href.indexOf('#') === 0) {
+          return;
+        }
+
+        if (href.charAt(0) === '?') {
+          href = window.location.pathname + href;
+        }
+
+        var url = new URL(href, window.location.origin);
+        if (!url.searchParams.get('per_page')) {
+          url.searchParams.set('per_page', String(selected));
+        }
+
+        link.setAttribute('href', url.pathname + url.search + url.hash);
+      });
+
+      document.querySelectorAll('form[method="get"]').forEach(function (form) {
+        if (form.querySelector('input[name="per_page"]')) {
+          return;
+        }
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'per_page';
+        hidden.value = String(selected);
+        form.appendChild(hidden);
+      });
+    });
+  })();
+</script>
+
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

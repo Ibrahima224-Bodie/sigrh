@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Approbation du Directeur - Congé{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Approbation de la Demande de Congé</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Info de la demande -->
+                    <div class="alert alert-info">
+                        <h5>Demande de {{ conge.beneficiaire_nom }}</h5>
+                        <p class="mb-1"><strong>Type:</strong> {{ conge.get_type_conge_display }}</p>
+                        <p class="mb-1"><strong>Dates:</strong> {{ conge.date_debut|date:"d/m/Y" }} au {{ conge.date_fin|date:"d/m/Y" }}</p>
+                        <p class="mb-0"><strong>Motif:</strong> {{ conge.motif }}</p>
+                    </div>
+
+                    <!-- Commentaires existants -->
+                    {% if commentaires %}
+                    <div class="mb-4">
+                        <h5>Historique des commentaires</h5>
+                        <div class="comments-section" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                            {% for commentaire in commentaires %}
+                            <div class="comment mb-3" style="border-left: 3px solid #007bff; padding-left: 10px;">
+                                <strong>{{ commentaire.auteur.first_name }} {{ commentaire.auteur.last_name }}</strong>
+                                <small class="text-muted">{{ commentaire.date_creation|date:"d/m/Y H:i" }}</small>
+                                <p class="mb-0 mt-1">{{ commentaire.texte }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Formulaire d'approbation -->
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label><strong>Décision:</strong></label>
+                            <div>
+                                {% for radio in form.action %}
+                                <div class="form-check">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.action.errors %}
+                            <div class="invalid-feedback" style="display: block;">{{ form.action.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.commentaire.id_for_label }}">{{ form.commentaire.label }}</label>
+                            {{ form.commentaire }}
+                            {% if form.commentaire.errors %}
+                            <div class="invalid-feedback" style="display: block;">{{ form.commentaire.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Soumettre</button>
+                            <a href="{% url 'conge-detail' conge.pk %}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -89,18 +89,13 @@
 
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="{{ form.service_text.id_for_label }}">{{ form.service_text.label }}</label>
-                                {{ form.service_text }}
-                                {% if form.service_text.errors %}
+                                <label for="{{ form.service.id_for_label }}">{{ form.service.label }}</label>
+                                {{ form.service }}
+                                {% if form.service.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {{ form.service_text.errors }}
+                                    {{ form.service.errors }}
                                 </div>
                                 {% endif %}
-                                <datalist id="service-list">
-                                    {% for structure in structures %}
-                                    <option value="{{ structure.nom }}">
-                                    {% endfor %}
-                                </datalist>
                             </div>
 
                             <div class="form-group col-md-6">

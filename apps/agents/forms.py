@@ -3,19 +3,17 @@ from .models import Agent
 from apps.organigramme.models import Structure
 
 class AgentForm(forms.ModelForm):
-    service_text = forms.CharField(
+    service = forms.ModelChoiceField(
+        queryset=Structure.objects.order_by('nom'),
         required=False,
+        empty_label='Sélectionner un service',
         label='Service',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Tapez ou sélectionnez un service',
-            'list': 'service-list'
-        })
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     class Meta:
         model = Agent
-        fields = ['matricule', 'nom', 'prenom', 'telephone', 'email', 'fonction', 'date_recrutement', 'photo']
+        fields = ['matricule', 'nom', 'prenom', 'telephone', 'email', 'fonction', 'service', 'date_recrutement', 'photo']
         labels = {
             'matricule': 'Matricule',
             'nom': 'Nom',
@@ -37,19 +35,3 @@ class AgentForm(forms.ModelForm):
             'photo': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk and self.instance.service:
-            self.fields['service_text'].initial = self.instance.service.nom
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        service_text = self.cleaned_data.get('service_text')
-        if service_text:
-            structure, created = Structure.objects.get_or_create(nom=service_text)
-            instance.service = structure
-        else:
-            instance.service = None
-        if commit:
-            instance.save()
-        return instance

@@ -12,12 +12,16 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-white">{{ formation.titre }}</h6>
                         <div>
+                            {% if perms.formations.change_formation %}
                             <a href="{% url 'formation-update' formation.id %}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i> Modifier
                             </a>
+                            {% endif %}
+                            {% if perms.formations.delete_formation %}
                             <a href="{% url 'formation-delete' formation.id %}" class="btn btn-sm btn-danger">
                                 <i class="fas fa-trash"></i> Supprimer
                             </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

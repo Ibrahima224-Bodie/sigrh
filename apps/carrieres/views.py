@@ -1,13 +1,18 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
+from config.pagination import AdjustablePaginationMixin
+from apps.comptes.permissions import PermissionRequiredMixin
 from .models import Carriere
 from .forms import CarriereForm
 from apps.agents.models import Agent
 
-class CarriereListView(ListView):
+class CarriereListView(LoginRequiredMixin, PermissionRequiredMixin, AdjustablePaginationMixin, ListView):
     model = Carriere
+    model_permission_model = Carriere
+    required_action = 'view'
     template_name = 'carrieres/carriere_list.html'
     context_object_name = 'carrieres'
     paginate_by = 10
@@ -24,13 +29,16 @@ class CarriereListView(ListView):
             )
         return queryset.order_by('-id')
 
-class CarriereDetailView(DetailView):
+class CarriereDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Carriere
+    model_permission_model = Carriere
+    required_action = 'view'
     template_name = 'carrieres/carriere_detail.html'
     context_object_name = 'carriere'
 
-class CarriereCreateView(CreateView):
+class CarriereCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Carriere
+    model_permission_model = Carriere
     form_class = CarriereForm
     template_name = 'carrieres/carriere_form.html'
     success_url = reverse_lazy('carriere-list')
@@ -40,8 +48,9 @@ class CarriereCreateView(CreateView):
         context['agents'] = Agent.objects.all()
         return context
 
-class CarriereUpdateView(UpdateView):
+class CarriereUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Carriere
+    model_permission_model = Carriere
     form_class = CarriereForm
     template_name = 'carrieres/carriere_form.html'
     success_url = reverse_lazy('carriere-list')
@@ -51,7 +60,8 @@ class CarriereUpdateView(UpdateView):
         context['agents'] = Agent.objects.all()
         return context
 
-class CarriereDeleteView(DeleteView):
+class CarriereDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Carriere
+    model_permission_model = Carriere
     template_name = 'carrieres/carriere_confirm_delete.html'
     success_url = reverse_lazy('carriere-list')

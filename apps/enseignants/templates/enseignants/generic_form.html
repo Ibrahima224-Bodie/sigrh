@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}{{ entity_label }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="m-0">{% if form.instance.pk %}Modifier {{ entity_label }}{% else %}Ajouter {{ entity_label }}{% endif %}</h5>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="card-body">
+            {% for field in form %}
+            <div class="form-group">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+              <div class="text-danger small">{{ field.errors }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <a href="{% url list_url_name %}" class="btn btn-secondary">Annuler</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+  (function () {
+    const communeSelect = document.getElementById('id_commune');
+    const quartierSelect = document.getElementById('id_quartier');
+
+    if (!communeSelect || !quartierSelect) {
+      return;
+    }
+
+    const endpoint = "{% url 'enseignants:ajax-quartiers' %}";
+
+    function triggerSelect2(selectEl) {
+      if (window.jQuery && window.jQuery.fn.select2) {
+        window.jQuery(selectEl).trigger('change.select2');
+      }
+    }
+
+    function resetQuartier() {
+      quartierSelect.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Sélectionner un quartier';
+      quartierSelect.appendChild(option);
+      quartierSelect.value = '';
+      triggerSelect2(quartierSelect);
+    }
+
+    async function loadQuartiers(communeId) {
+      if (!communeId) {
+        resetQuartier();
+        return;
+      }
+
+      const response = await fetch(endpoint + '?commune_id=' + encodeURIComponent(communeId));
+      const data = await response.json();
+      const previousValue = quartierSelect.value;
+
+      resetQuartier();
+      (data.results || []).forEach(function (item) {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.nom;
+        quartierSelect.appendChild(option);
+      });
+
+      if (previousValue) {
+        quartierSelect.value = previousValue;
+      }
+      triggerSelect2(quartierSelect);
+    }
+
+    communeSelect.addEventListener('change', function () {
+      loadQuartiers(communeSelect.value);
+    });
+  })();
+</script>
+{% endblock %}

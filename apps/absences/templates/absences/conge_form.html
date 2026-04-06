@@ -14,16 +14,26 @@
                 <div class="card-body">
                     <form method="post" novalidate>
                         {% csrf_token %}
-                        
-                        <div class="form-group">
-                            <label for="{{ form.agent_text.id_for_label }}">{{ form.agent_text.label }}</label>
-                            {{ form.agent_text }}
-                            {% if form.agent_text.errors %}<div class="invalid-feedback d-block">{{ form.agent_text.errors }}</div>{% endif %}
-                            <datalist id="agent-list">
-                                {% for agent in agents %}
-                                <option value="{{ agent.nom }} {{ agent.prenom }}">
-                                {% endfor %}
-                            </datalist>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="alert alert-info">
+                            <strong>Demandeur:</strong> {{ user_full_name|default:request.user.get_full_name|default:request.user.username }}
+                            {% if user_role %}
+                                | <strong>Rôle:</strong> {{ user_role|capfirst }}
+                            {% endif %}
+                            {% if agent %}
+                                | <strong>Profil:</strong> Agent {{ agent.nom }} {{ agent.prenom }}
+                            {% elif professeur %}
+                                | <strong>Profil:</strong> Professeur {{ professeur.nom }} {{ professeur.prenom }}
+                            {% endif %}
+                            {% if etablissement %}
+                                | <strong>Établissement:</strong> {{ etablissement.nom }}
+                            {% endif %}
                         </div>
 
                         <div class="form-row">
@@ -44,21 +54,6 @@
                                 <label for="{{ form.type_conge.id_for_label }}">{{ form.type_conge.label }}</label>
                                 {{ form.type_conge }}
                                 {% if form.type_conge.errors %}<div class="invalid-feedback d-block">{{ form.type_conge.errors }}</div>{% endif %}
-                                <datalist id="type-conge-list">
-                                    {% for choice_value, choice_label in type_conge_choices %}
-                                    <option value="{{ choice_label }}">
-                                    {% endfor %}
-                                </datalist>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="{{ form.statut.id_for_label }}">{{ form.statut.label }}</label>
-                                {{ form.statut }}
-                                {% if form.statut.errors %}<div class="invalid-feedback d-block">{{ form.statut.errors }}</div>{% endif %}
-                                <datalist id="statut-list">
-                                    {% for choice_value, choice_label in statut_choices %}
-                                    <option value="{{ choice_label }}">
-                                    {% endfor %}
-                                </datalist>
                             </div>
                         </div>
 

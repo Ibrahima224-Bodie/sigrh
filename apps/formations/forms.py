@@ -26,28 +26,20 @@ class FormationForm(forms.ModelForm):
         }
 
 class CertificatForm(forms.ModelForm):
-    formation_text = forms.CharField(
-        required=True,
+    formation = forms.ModelChoiceField(
+        queryset=Formation.objects.order_by('titre'),
         label='Formation',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Tapez ou sélectionnez une formation',
-            'list': 'formation-list'
-        })
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-    agent_text = forms.CharField(
-        required=True,
+    agent = forms.ModelChoiceField(
+        queryset=Agent.objects.order_by('nom', 'prenom'),
         label='Agent',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Tapez ou sélectionnez un agent',
-            'list': 'agent-certificat-list'
-        })
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     class Meta:
         model = Certificat
-        fields = ['date_obtention', 'fichier']
+        fields = ['formation', 'agent', 'date_obtention', 'fichier']
         labels = {
             'date_obtention': 'Date d\'Obtention',
             'fichier': 'Fichier',
@@ -56,35 +48,3 @@ class CertificatForm(forms.ModelForm):
             'date_obtention': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'fichier': forms.FileInput(attrs={'class': 'form-control'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
-            if self.instance.formation:
-                self.fields['formation_text'].initial = self.instance.formation.titre
-            if self.instance.agent:
-                self.fields['agent_text'].initial = f"{self.instance.agent.nom} {self.instance.agent.prenom}"
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        formation_text = self.cleaned_data.get('formation_text')
-        agent_text = self.cleaned_data.get('agent_text')
-        
-        if formation_text:
-            try:
-                formation = Formation.objects.get(titre=formation_text)
-                instance.formation = formation
-            except Formation.DoesNotExist:
-                pass
-        
-        if agent_text:
-            try:
-                nom, prenom = agent_text.split(' ', 1)
-                agent = Agent.objects.get(nom=nom, prenom=prenom)
-                instance.agent = agent
-            except (ValueError, Agent.DoesNotExist):
-                pass
-        
-        if commit:
-            instance.save()
-        return instance

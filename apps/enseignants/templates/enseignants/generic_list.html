@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}{{ entity_label_plural }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex align-items-center">
+      <h5 class="m-0">
+        <i class="fas fa-list mr-1"></i> Liste des {{ entity_label_plural }}
+        <span class="badge badge-light ml-2">{{ paginator.count }}</span>
+      </h5>
+      {% if can_add %}
+      <a href="{% url create_url_name %}" class="btn btn-success btn-sm ml-auto float-right">
+        <i class="fas fa-plus mr-1"></i>Ajouter
+      </a>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <form method="get" class="form-inline mb-3">
+        <input type="text" name="search" class="form-control mr-2" placeholder="Recherche" value="{{ search }}">
+        <button type="submit" class="btn btn-primary btn-sm mr-2">
+          <i class="fas fa-filter mr-1"></i>Filtrer
+        </button>
+        <a href="" class="btn btn-outline-secondary btn-sm">Reinitialiser</a>
+      </form>
+
+      {% if relations_hint %}
+      <p class="text-muted"><small>{{ relations_hint }}</small></p>
+      {% endif %}
+
+      {% if csv_entity and can_export_template or csv_entity and can_export_data or csv_entity and can_import %}
+      <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between" role="alert">
+        <div>
+          <strong>Import CSV {{ entity_label_plural }}</strong><br>
+          Ordre conseille: regions -> prefectures -> communes -> quartiers -> secteurs -> etablissements -> filieres -> modules -> programmes.
+          Les modules sont independants; le lien vers programme est optionnel.
+        </div>
+        <div class="mt-2 mt-md-0">
+          {% if can_export_template %}
+          <a href="{% url 'enseignants:export_csv_template' csv_entity %}" class="btn btn-outline-primary btn-sm">Format</a>
+          {% endif %}
+          {% if can_export_data %}
+          <a href="{% url 'enseignants:export_csv_data' csv_entity %}" class="btn btn-outline-secondary btn-sm">Exporter</a>
+          {% endif %}
+          {% if can_import %}
+          <form method="post" action="{% url 'enseignants:import_csv_data' csv_entity %}" enctype="multipart/form-data" class="d-inline-block ml-2">
+            {% csrf_token %}
+            <input type="file" name="file" accept=".csv" required class="form-control-file d-inline-block" style="width: 180px;">
+            <button type="submit" class="btn btn-sm btn-warning">Importer</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+          <thead class="thead-light">
+            <tr>
+              <th style="width:70px;">#</th>
+              <th>Libelle</th>
+              {% if extra_columns %}
+              {% for column_label in extra_columns %}
+              <th>{{ column_label }}</th>
+              {% endfor %}
+              {% elif extra_column_label %}
+              <th>{{ extra_column_label }}</th>
+              {% endif %}
+              {% if can_change or can_delete %}
+              <th style="width:180px;">Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% if item_rows %}
+            {% for row in item_rows %}
+            <tr>
+              <td>{{ row_start|add:forloop.counter }}</td>
+              <td>{{ row.label }}</td>
+              {% if extra_columns %}
+              {% for value in row.extra_values %}
+              <td>{{ value }}</td>
+              {% endfor %}
+              {% elif extra_column_label %}
+              <td>{{ row.extra_label }}</td>
+              {% endif %}
+              {% if can_change or can_delete %}
+              <td>
+                {% if can_change %}
+                <a href="{% url update_url_name row.object.pk %}" class="btn btn-sm btn-warning">
+                  <i class="fas fa-edit"></i>
+                </a>
+                {% endif %}
+                {% if can_delete %}
+                <a href="{% url delete_url_name row.object.pk %}" class="btn btn-sm btn-danger">
+                  <i class="fas fa-trash"></i>
+                </a>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+            {% elif items %}
+            {% for item in items %}
+            <tr>
+              <td>{{ row_start|add:forloop.counter }}</td>
+              <td>{{ item }}</td>
+              {% if extra_columns %}
+              {% for _ in extra_columns %}
+              <td></td>
+              {% endfor %}
+              {% elif extra_column_label %}
+              <td></td>
+              {% endif %}
+              {% if can_change or can_delete %}
+              <td>
+                {% if can_change %}
+                <a href="{% url update_url_name item.pk %}" class="btn btn-sm btn-warning">
+                  <i class="fas fa-edit"></i>
+                </a>
+                {% endif %}
+                {% if can_delete %}
+                <a href="{% url delete_url_name item.pk %}" class="btn btn-sm btn-danger">
+                  <i class="fas fa-trash"></i>
+                </a>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+            {% endif %}
+            {% if not item_rows and not items %}
+            <tr>
+              <td colspan="{% if extra_columns %}{{ extra_columns|length|add:2 }}{% elif extra_column_label %}3{% else %}2{% endif %}{% if can_change or can_delete %}1{% endif %}" class="text-center text-muted">Aucune donnee</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if is_paginated %}
+      <nav>
+        <ul class="pagination justify-content-center">
+          {% for num in page_obj.paginator.page_range %}
+          <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

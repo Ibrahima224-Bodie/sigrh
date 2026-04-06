@@ -16,13 +16,8 @@
                         {% csrf_token %}
                         
                         <div class="form-group">
-                            <label for="{{ form.agent_text.id_for_label }}">{{ form.agent_text.label }}</label>
-                            {{ form.agent_text }}
-                            <datalist id="agent-carriere-list">
-                                {% for agent in agents %}
-                                <option value="{{ agent.nom }} {{ agent.prenom }}">
-                                {% endfor %}
-                            </datalist>
+                            <label for="{{ form.agent.id_for_label }}">{{ form.agent.label }}</label>
+                            {{ form.agent }}
                         </div>
 
                         <div class="form-group">

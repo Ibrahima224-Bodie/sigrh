@@ -3,8 +3,10 @@
 {% block content %}
 
 <!-- Statistiques -->
+{% if can_view_any_dashboard_section %}
 <div class="row">
   <!-- Agents -->
+  {% if can_view_agents %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-info">
       <div class="inner">
@@ -17,8 +19,10 @@
       <a href="{% url 'agent-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 
   <!-- Formations -->
+  {% if can_view_formations %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-success">
       <div class="inner">
@@ -31,67 +35,97 @@
       <a href="{% url 'formation-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Congés -->
+  <!-- Enseignants -->
+  {% if can_view_professeurs %}
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-cyan">
+      <div class="inner">
+        <h3>{{ total_professeurs }}</h3>
+        <p>Enseignants</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-chalkboard-user"></i>
+      </div>
+      <a href="{% url 'enseignants:professeur_list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Filières -->
+  {% if can_view_filieres %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-warning">
       <div class="inner">
-        <h3>{{ total_conges }}</h3>
-        <p>Congés</p>
+        <h3>{{ total_filieres }}</h3>
+        <p>Filières</p>
       </div>
       <div class="icon">
         <i class="fas fa-door-open"></i>
       </div>
-      <a href="{% url 'conge-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+      <a href="{% url 'enseignants:filiere_list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Carrières -->
+  <!-- Programmes -->
+  {% if can_view_programmes %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-danger">
       <div class="inner">
-        <h3>{{ total_carrieres }}</h3>
-        <p>Carrières</p>
+        <h3>{{ total_programmes }}</h3>
+        <p>Programmes</p>
       </div>
       <div class="icon">
         <i class="fas fa-suitcase"></i>
       </div>
-      <a href="{% url 'carriere-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+      <a href="{% url 'enseignants:programme_list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Comptes -->
+  <!-- Modules -->
+  {% if can_view_modules %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-primary">
       <div class="inner">
-        <h3>{{ total_comptes }}</h3>
-        <p>Comptes</p>
+        <h3>{{ total_modules }}</h3>
+        <p>Modules</p>
       </div>
       <div class="icon">
         <i class="fas fa-lock"></i>
       </div>
-      <a href="{% url 'user-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+      <a href="{% url 'enseignants:module_list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Organigramme -->
+  <!-- Etablissements -->
+  {% if can_view_etablissements %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-dark">
       <div class="inner">
-        <h3>{{ total_organigramme }}</h3>
-        <p>Organigramme</p>
+        <h3>{{ total_etablissements }}</h3>
+        <p>Etablissements</p>
       </div>
       <div class="icon">
         <i class="fas fa-chart-bar"></i>
       </div>
-      <a href="{% url 'structure-list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
+      <a href="{% url 'enseignants:etablissement_list' %}" class="small-box-footer">Consulter <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
+  {% endif %}
 </div>
+{% else %}
+<div class="alert alert-info">Vous avez accès au tableau de bord, mais aucune section ne vous est autorisée.</div>
+{% endif %}
 
 <!-- Listes rapides -->
+{% if can_view_any_dashboard_section %}
 <div class="row mt-4">
   <!-- Agents récents -->
+  {% if can_view_agents %}
   <div class="col-md-6">
     <div class="card shadow">
       <div class="card-header bg-info">
@@ -122,8 +156,10 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <!-- Formations récentes -->
+  {% if can_view_formations %}
   <div class="col-md-6">
     <div class="card shadow">
       <div class="card-header bg-success">
@@ -154,11 +190,15 @@
       </div>
     </div>
   </div>
+  {% endif %}
 </div>
+{% endif %}
 
 <!-- Deuxième ligne de listes -->
+{% if can_view_any_dashboard_section %}
 <div class="row mt-4">
   <!-- Congés en attente -->
+  {% if can_view_conges %}
   <div class="col-md-6">
     <div class="card shadow">
       <div class="card-header bg-warning">
@@ -197,8 +237,10 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <!-- Carrières récentes -->
+  {% if can_view_carrieres %}
   <div class="col-md-6">
     <div class="card shadow">
       <div class="card-header bg-danger">
@@ -229,6 +271,8 @@
       </div>
     </div>
   </div>
+  {% endif %}
 </div>
+{% endif %}
 
 {% endblock %}

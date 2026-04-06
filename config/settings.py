@@ -74,14 +74,26 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sigrh',
+        'USER': 'postgres',
+        'PASSWORD': '6875',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Authentication settings
+LOGIN_URL = 'login'  # Redirect to login page when authentication is required
+LOGIN_REDIRECT_URL = 'dashboard'  # Redirect after successful login
 
 AUTH_PASSWORD_VALIDATORS = [
     {

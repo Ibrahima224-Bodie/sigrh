@@ -1,16 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+from config.pagination import AdjustablePaginationMixin
+from apps.comptes.permissions import PermissionRequiredMixin
 from .models import Agent
 from .forms import AgentForm
 from apps.organigramme.models import Structure
 
 # Liste des agents
-class AgentListView(ListView):
+class AgentListView(LoginRequiredMixin, PermissionRequiredMixin, AdjustablePaginationMixin, ListView):
     model = Agent
+    model_permission_model = Agent
+    required_action = 'view'
     template_name = 'agents/agent_list.html'
     context_object_name = 'agents'
     paginate_by = 10
@@ -28,14 +33,17 @@ class AgentListView(ListView):
         return queryset.order_by('matricule')
 
 # Détail d'un agent
-class AgentDetailView(DetailView):
+class AgentDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Agent
+    model_permission_model = Agent
+    required_action = 'view'
     template_name = 'agents/agent_detail.html'
     context_object_name = 'agent'
 
 # Créer un agent
-class AgentCreateView(CreateView):
+class AgentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Agent
+    model_permission_model = Agent
     form_class = AgentForm
     template_name = 'agents/agent_form.html'
     success_url = reverse_lazy('agent-list')
@@ -57,8 +65,9 @@ class AgentCreateView(CreateView):
         return response
 
 # Modifier un agent
-class AgentUpdateView(UpdateView):
+class AgentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Agent
+    model_permission_model = Agent
     form_class = AgentForm
     template_name = 'agents/agent_form.html'
     success_url = reverse_lazy('agent-list')
@@ -80,8 +89,9 @@ class AgentUpdateView(UpdateView):
         return response
 
 # Supprimer un agent
-class AgentDeleteView(DeleteView):
+class AgentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Agent
+    model_permission_model = Agent
     template_name = 'agents/agent_confirm_delete.html'
     success_url = reverse_lazy('agent-list')
 

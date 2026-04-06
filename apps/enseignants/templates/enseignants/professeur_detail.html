@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ professeur.prenom }} {{ professeur.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{{ professeur.prenom }} {{ professeur.nom }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center">
+                            {% if professeur.photo %}
+                            <img src="{{ professeur.photo.url }}" alt="Photo de {{ professeur.prenom }} {{ professeur.nom }}" class="img-fluid rounded-circle shadow" style="width: 140px; height: 140px; object-fit: cover;">
+                            {% elif professeur_user and professeur_user.photo %}
+                            <img src="{{ professeur_user.photo.url }}" alt="Photo de {{ professeur.prenom }} {{ professeur.nom }}" class="img-fluid rounded-circle shadow" style="width: 140px; height: 140px; object-fit: cover;">
+                            {% else %}
+                            {% if perms.enseignants.change_professeur %}
+                            <a href="{% url 'enseignants:professeur_update' professeur.pk %}" title="Cliquez pour ajouter une photo">
+                                <div class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle bg-light border" style="width: 140px; height: 140px; cursor: pointer;">
+                                    <i class="fas fa-user fa-3x text-muted mb-1"></i>
+                                    <small class="text-muted" style="font-size: 0.65rem;">Ajouter une photo</small>
+                                </div>
+                            </a>
+                            {% else %}
+                            <div class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle bg-light border" style="width: 140px; height: 140px;">
+                                <i class="fas fa-user fa-3x text-muted mb-1"></i>
+                                <small class="text-muted" style="font-size: 0.65rem;">Pas de photo</small>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Spécialité" %}</h6>
+                            <p>{{ professeur.specialite }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Statut" %}</h6>
+                            <p>
+                                <span class="badge {% if professeur.statut == 'permanent' %}badge-success{% elif professeur.statut == 'contractuel' %}badge-info{% else %}badge-warning{% endif %}">
+                                    {{ professeur.get_statut_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Email" %}</h6>
+                            <p><a href="mailto:{{ professeur.email }}">{{ professeur.email }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Téléphone" %}</h6>
+                            <p>{{ professeur.telephone }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Établissement" %}</h6>
+                            <p><a href="{% url 'enseignants:etablissement_detail' professeur.etablissement.pk %}">{{ professeur.etablissement.nom }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Date d'embauche" %}</h6>
+                            <p>{{ professeur.date_embauche }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Résumé des heures de travail" %}</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <p class="card-text"><small class="text-muted">{% trans "Heures affectées" %}</small></p>
+                                            <h4 class="badge badge-primary">{{ professeur.heures_affectees }}h</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <p class="card-text"><small class="text-muted">{% trans "Heures utilisées" %}</small></p>
+                                            <h4 class="badge badge-secondary">{{ professeur.heures_utilisees }}h</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <p class="card-text"><small class="text-muted">{% trans "Heures restantes" %}</small></p>
+                                            <h4 class="badge badge-info">{{ heures_restantes }}h</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <p class="card-text"><small class="text-muted">{% trans "Taux d'utilisation" %}</small></p>
+                                            <h4>{{ taux_utilisation|floatformat:1 }}%</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar {% if taux_utilisation >= 100 %}bg-danger{% elif taux_utilisation >= 80 %}bg-warning{% else %}bg-info{% endif %}" 
+                                     role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ taux_utilisation_width }}" style="width: {{ taux_utilisation_width }}%;">
+                                    {{ taux_utilisation|floatformat:2 }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if perms.enseignants.change_professeur %}
+                    <a href="{% url 'enseignants:professeur_update' professeur.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> {% trans "Modifier" %}
+                    </a>
+                    {% endif %}
+                    {% if perms.enseignants.delete_professeur %}
+                    <a href="{% url 'enseignants:professeur_delete' professeur.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> {% trans "Supprimer" %}
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'enseignants:professeur_list' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h5 class="card-title">{% trans "Affectations" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if perms.enseignants.add_affectation %}
+                    <a href="{% url 'enseignants:affectation_create' %}?professeur={{ professeur.pk }}"
+                       id="btn-add-affectation"
+                       data-quota-atteint="{% if quota_atteint %}1{% else %}0{% endif %}"
+                       class="btn btn-sm {% if quota_atteint %}btn-secondary{% else %}btn-success{% endif %} mb-3">
+                        <i class="fas fa-plus"></i> {% trans "Ajouter une affectation" %}
+                    </a>
+                    {% endif %}
+                    {% if quota_atteint %}
+                    <div class="alert alert-warning py-2">
+                        Quota atteint: aucune nouvelle affectation n'est autorisée pour ce professeur.
+                    </div>
+                    {% endif %}
+                    {% if affectations %}
+                        <ul class="list-group">
+                            {% for aff in affectations %}
+                            <li class="list-group-item">
+                                <a href="{% url 'enseignants:module_detail' aff.module.pk %}">{{ aff.module.nom }}</a>
+                                <br/>
+                                <small class="text-muted">{{ aff.nombre_heures }}h - Prio: {{ aff.get_priorite_display }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "Aucune affectation" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var addBtn = document.getElementById('btn-add-affectation');
+    if (!addBtn) {
+        return;
+    }
+    if (addBtn.dataset.quotaAtteint === '1') {
+        addBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+            window.alert("Quota atteint: impossible d'ajouter une nouvelle affectation pour ce professeur.");
+        });
+    }
+});
+</script>
+{% endblock %}

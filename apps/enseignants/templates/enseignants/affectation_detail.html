@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Détail de l'affectation" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{% trans "Affectation" %}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Professeur" %}</h6>
+                            <p><a href="{% url 'enseignants:professeur_detail' affectation.professeur.pk %}">{{ affectation.professeur.prenom }} {{ affectation.professeur.nom }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Spécialité" %}</h6>
+                            <p>{{ affectation.professeur.specialite }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Module" %}</h6>
+                            <p><a href="{% url 'enseignants:module_detail' affectation.module.pk %}">{{ affectation.module.nom }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Programme" %}</h6>
+                            {% with prog=affectation.module.programmes_principaux.first %}
+                            <p>{% if prog %}{{ prog.nom }}{% else %}-{% endif %}</p>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Heures assignées" %}</h6>
+                            <p>{{ affectation.nombre_heures }}h</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Priorité" %}</h6>
+                            <p>
+                                <span class="badge {% if affectation.priorite == '1' %}badge-danger{% elif affectation.priorite == '2' %}badge-warning{% elif affectation.priorite == '3' %}badge-info{% else %}badge-secondary{% endif %}">
+                                    {{ affectation.get_priorite_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Date début" %}</h6>
+                            <p>{{ affectation.date_debut }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Date fin" %}</h6>
+                            <p>{{ affectation.date_fin|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Observations" %}</h6>
+                            <p>{{ affectation.observations }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Statut" %}</h6>
+                            <p>
+                                {% if affectation.actif %}
+                                    <span class="badge badge-success">{% trans "Actif" %}</span>
+                                {% else %}
+                                    <span class="badge badge-danger">{% trans "Inactif" %}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if perms.enseignants.change_affectation %}
+                    <a href="{% url 'enseignants:affectation_update' affectation.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> {% trans "Modifier" %}
+                    </a>
+                    {% endif %}
+                    {% if perms.enseignants.delete_affectation %}
+                    <a href="{% url 'enseignants:affectation_delete' affectation.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> {% trans "Supprimer" %}
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'enseignants:affectation_list' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

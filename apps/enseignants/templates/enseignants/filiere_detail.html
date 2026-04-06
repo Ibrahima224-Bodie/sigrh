@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ filiere.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{{ filiere.nom }} ({{ filiere.code }})</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Établissements" %}</h6>
+                            {% if etablissements_lies %}
+                            <ul class="mb-0 pl-3">
+                                {% for etab in etablissements_lies %}
+                                <li><a href="{% url 'enseignants:etablissement_detail' etab.pk %}">{{ etab.nom }}</a></li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p>-</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Durée" %}</h6>
+                            <p>{{ filiere.duree_mois }} {% trans "mois" %}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Description" %}</h6>
+                            <p>{{ filiere.description }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>{% trans "Nombre total d'heures" %}</h6>
+                            <p>{{ filiere.nombre_heures_total }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if perms.enseignants.change_filiere %}
+                    <a href="{% url 'enseignants:filiere_update' filiere.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> {% trans "Modifier" %}
+                    </a>
+                    {% endif %}
+                    {% if user.is_superuser and perms.enseignants.delete_filiere %}
+                    <a href="{% url 'enseignants:filiere_delete' filiere.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> {% trans "Supprimer" %}
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'enseignants:filiere_list' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h5 class="card-title">{% trans "Programmes" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if perms.enseignants.add_programme %}
+                    <a href="{% url 'enseignants:programme_create' %}?filiere_id={{ filiere.pk }}" class="btn btn-sm btn-success mb-3">
+                        <i class="fas fa-plus"></i> {% trans "Ajouter un programme" %}
+                    </a>
+                    {% endif %}
+                    {% if programmes %}
+                        <ul class="list-group">
+                            {% for programme in programmes %}
+                            <li class="list-group-item">
+                                <a href="{% url 'enseignants:programme_detail' programme.pk %}">
+                                    {{ programme.nom }} (Sem {{ programme.semestre }})
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "Aucun programme disponible" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

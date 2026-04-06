@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Mon Profil{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Fermer">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="row">
+    <!-- Carte identité -->
+    <div class="col-md-4 col-lg-3">
+      <div class="card card-primary card-outline">
+        <div class="card-body box-profile">
+          <div class="text-center">
+            {% if user.photo %}
+            <img src="{{ user.photo.url }}" alt="Photo de profil" class="profile-user-img img-fluid img-circle mb-3" style="width:90px;height:90px;object-fit:cover;">
+            {% else %}
+            <div class="profile-avatar mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-primary text-white"
+                 style="width:90px;height:90px;font-size:2.2rem;font-weight:700;">
+              {% if user.first_name and user.last_name %}
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+              {% else %}
+                {{ user.username.0|upper }}
+              {% endif %}
+            </div>
+            {% endif %}
+            <h3 class="profile-username">
+              {{ user.get_full_name|default:user.username }}
+            </h3>
+            <p class="text-muted">
+              {% if user.role %}
+              <span class="badge badge-primary badge-pill">{{ user.get_role_display }}</span>
+              {% else %}
+              <span class="badge badge-secondary badge-pill">Aucun rôle</span>
+              {% endif %}
+            </p>
+          </div>
+
+          <hr>
+
+          <ul class="list-group list-group-unbordered mb-3">
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+              <span class="text-muted"><i class="fas fa-user mr-1"></i> Identifiant</span>
+              <strong>{{ user.username }}</strong>
+            </li>
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+              <span class="text-muted"><i class="fas fa-envelope mr-1"></i> Email</span>
+              <span>
+                {% if user.email %}
+                  <a href="mailto:{{ user.email }}" class="text-dark">{{ user.email }}</a>
+                {% else %}
+                  <em class="text-muted">Non renseigné</em>
+                {% endif %}
+              </span>
+            </li>
+            {% if user.structure %}
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+              <span class="text-muted"><i class="fas fa-building mr-1"></i> Structure</span>
+              <strong>{{ user.structure.nom }}</strong>
+            </li>
+            {% endif %}
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+              <span class="text-muted"><i class="fas fa-circle mr-1"></i> Statut</span>
+              {% if user.is_active %}
+                <span class="badge badge-success">Actif</span>
+              {% else %}
+                <span class="badge badge-danger">Inactif</span>
+              {% endif %}
+            </li>
+          </ul>
+
+          <div class="text-muted small">
+            <div class="mb-1">
+              <i class="fas fa-calendar-plus mr-1"></i>
+              Inscrit le {{ user.date_joined|date:"d/m/Y" }}
+            </div>
+            {% if user.last_login %}
+            <div>
+              <i class="fas fa-sign-in-alt mr-1"></i>
+              Dernière connexion le {{ user.last_login|date:"d/m/Y à H\hi" }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Groupes & permissions -->
+      <div class="card card-outline card-secondary">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-shield-alt mr-1"></i> Accès &amp; Groupes</h3>
+        </div>
+        <div class="card-body p-2">
+          <p class="mb-1 small text-muted font-weight-bold">Groupes :</p>
+          <div class="mb-2">
+            {% for group in user.groups.all %}
+              <span class="badge badge-dark mb-1">{{ group.name }}</span>
+            {% empty %}
+              <span class="text-muted small">Aucun groupe</span>
+            {% endfor %}
+          </div>
+          {% if user.is_superuser %}
+          <span class="badge badge-danger"><i class="fas fa-star mr-1"></i>Super administrateur</span>
+          {% endif %}
+          {% if user.is_staff %}
+          <span class="badge badge-info"><i class="fas fa-tools mr-1"></i>Personnel (staff)</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Panneau principal avec onglets -->
+    <div class="col-md-8 col-lg-9">
+      <div class="card">
+        <div class="card-header p-0 border-bottom-0">
+          <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link {% if active_tab == 'info' or not active_tab %}active{% endif %}"
+                 id="tab-apercu" data-toggle="tab" href="#apercu" role="tab">
+                <i class="fas fa-id-card mr-1"></i> Aperçu
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if active_tab == 'edit' %}active{% endif %}"
+                 id="tab-edit" data-toggle="tab" href="#edit" role="tab">
+                <i class="fas fa-user-edit mr-1"></i> Modifier mes informations
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if active_tab == 'password' %}active{% endif %}"
+                 id="tab-password" data-toggle="tab" href="#password" role="tab">
+                <i class="fas fa-key mr-1"></i> Changer le mot de passe
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body tab-content" id="profileTabsContent">
+
+          <!-- Onglet Aperçu -->
+          <div class="tab-pane fade {% if active_tab == 'info' or not active_tab %}show active{% endif %}" id="apercu" role="tabpanel">
+            <h5 class="font-weight-bold text-uppercase text-gray-700 mb-3">
+              <i class="fas fa-id-card mr-2"></i>Informations générales
+            </h5>
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="info-box bg-light shadow-sm mb-3">
+                  <span class="info-box-icon bg-info"><i class="fas fa-user"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Prénom</span>
+                    <span class="info-box-number">{{ user.first_name|default:"—" }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="info-box bg-light shadow-sm mb-3">
+                  <span class="info-box-icon bg-primary"><i class="fas fa-id-badge"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Nom</span>
+                    <span class="info-box-number">{{ user.last_name|default:"—" }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="info-box bg-light shadow-sm mb-3">
+                  <span class="info-box-icon bg-success"><i class="fas fa-envelope"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Adresse email</span>
+                    <span class="info-box-number" style="font-size:.9rem;">{{ user.email|default:"—" }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="info-box bg-light shadow-sm mb-3">
+                  <span class="info-box-icon bg-warning"><i class="fas fa-briefcase"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Rôle</span>
+                    <span class="info-box-number" style="font-size:.9rem;">{{ user.get_role_display|default:"Non attribué" }}</span>
+                  </div>
+                </div>
+              </div>
+              {% if user.structure %}
+              <div class="col-sm-6">
+                <div class="info-box bg-light shadow-sm mb-3">
+                  <span class="info-box-icon bg-secondary"><i class="fas fa-building"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Structure</span>
+                    <span class="info-box-number" style="font-size:.9rem;">{{ user.structure.nom }}</span>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              <div class="col-sm-6">
+                <div class="info-box bg-light shadow-sm mb-3">
+                  <span class="info-box-icon bg-danger"><i class="fas fa-at"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Identifiant</span>
+                    <span class="info-box-number" style="font-size:.9rem;">{{ user.username }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+            <h5 class="font-weight-bold text-uppercase text-gray-700 mb-3">
+              <i class="fas fa-clock mr-2"></i>Activité du compte
+            </h5>
+            <table class="table table-bordered table-sm">
+              <tbody>
+                <tr>
+                  <th width="35%">Date d'inscription</th>
+                  <td>{{ user.date_joined|date:"l d F Y à H\hi" }}</td>
+                </tr>
+                <tr>
+                  <th>Dernière connexion</th>
+                  <td>
+                    {% if user.last_login %}
+                      {{ user.last_login|date:"l d F Y à H\hi" }}
+                    {% else %}
+                      <em class="text-muted">Jamais connecté</em>
+                    {% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Statut du compte</th>
+                  <td>
+                    {% if user.is_active %}
+                      <span class="badge badge-success">Actif</span>
+                    {% else %}
+                      <span class="badge badge-danger">Inactif</span>
+                    {% endif %}
+                    {% if user.is_staff %}
+                      <span class="badge badge-info ml-1">Staff</span>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                      <span class="badge badge-danger ml-1">Super-admin</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Onglet Modifier mes informations -->
+          <div class="tab-pane fade {% if active_tab == 'edit' %}show active{% endif %}" id="edit" role="tabpanel">
+            <h5 class="font-weight-bold text-uppercase text-gray-700 mb-3">
+              <i class="fas fa-user-edit mr-2"></i>Modifier mes informations
+            </h5>
+            <form method="post" enctype="multipart/form-data" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="_form_type" value="info">
+
+              {% if info_form.non_field_errors %}
+              <div class="alert alert-danger">{{ info_form.non_field_errors }}</div>
+              {% endif %}
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="{{ info_form.first_name.id_for_label }}">{{ info_form.first_name.label }}</label>
+                  {{ info_form.first_name }}
+                  {% if info_form.first_name.errors %}
+                  <div class="invalid-feedback d-block">{{ info_form.first_name.errors }}</div>
+                  {% endif %}
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="{{ info_form.last_name.id_for_label }}">{{ info_form.last_name.label }}</label>
+                  {{ info_form.last_name }}
+                  {% if info_form.last_name.errors %}
+                  <div class="invalid-feedback d-block">{{ info_form.last_name.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="{{ info_form.email.id_for_label }}">{{ info_form.email.label }}</label>
+                {{ info_form.email }}
+                {% if info_form.email.errors %}
+                <div class="invalid-feedback d-block">{{ info_form.email.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label for="{{ info_form.photo.id_for_label }}">{{ info_form.photo.label }}</label>
+                {% if user.photo %}
+                <div class="mb-2">
+                  <img src="{{ user.photo.url }}" alt="Photo actuelle" class="img-thumbnail" style="max-width: 120px; max-height: 120px; object-fit: cover;">
+                </div>
+                {% endif %}
+                {{ info_form.photo }}
+                {% if info_form.photo.errors %}
+                <div class="invalid-feedback d-block">{{ info_form.photo.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save mr-1"></i> Enregistrer les modifications
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Onglet Changer le mot de passe -->
+          <div class="tab-pane fade {% if active_tab == 'password' %}show active{% endif %}" id="password" role="tabpanel">
+            <h5 class="font-weight-bold text-uppercase text-gray-700 mb-3">
+              <i class="fas fa-key mr-2"></i>Changer le mot de passe
+            </h5>
+            <div class="row">
+              <div class="col-md-7">
+                <form method="post" novalidate>
+                  {% csrf_token %}
+                  <input type="hidden" name="_form_type" value="password">
+
+                  {% if password_form.non_field_errors %}
+                  <div class="alert alert-danger">{{ password_form.non_field_errors }}</div>
+                  {% endif %}
+
+                  <div class="form-group">
+                    <label for="{{ password_form.old_password.id_for_label }}">{{ password_form.old_password.label }}</label>
+                    {{ password_form.old_password }}
+                    {% if password_form.old_password.errors %}
+                    <div class="invalid-feedback d-block">{{ password_form.old_password.errors }}</div>
+                    {% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <label for="{{ password_form.new_password1.id_for_label }}">{{ password_form.new_password1.label }}</label>
+                    {{ password_form.new_password1 }}
+                    {% if password_form.new_password1.errors %}
+                    <div class="invalid-feedback d-block">{{ password_form.new_password1.errors }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">{{ password_form.new_password1.help_text|safe }}</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="{{ password_form.new_password2.id_for_label }}">{{ password_form.new_password2.label }}</label>
+                    {{ password_form.new_password2 }}
+                    {% if password_form.new_password2.errors %}
+                    <div class="invalid-feedback d-block">{{ password_form.new_password2.errors }}</div>
+                    {% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <button type="submit" class="btn btn-warning">
+                      <i class="fas fa-lock mr-1"></i> Changer le mot de passe
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div class="col-md-5">
+                <div class="callout callout-info">
+                  <h5><i class="fas fa-info-circle mr-1"></i> Conseils</h5>
+                  <ul class="mb-0 pl-3 small">
+                    <li>Minimum 8 caractères</li>
+                    <li>Évitez les mots courants</li>
+                    <li>Mélangez chiffres, lettres et caractères spéciaux</li>
+                    <li>N'utilisez pas votre nom d'utilisateur</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

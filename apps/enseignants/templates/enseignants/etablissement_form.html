@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Modifier l'établissement" %}{% else %}{% trans "Ajouter un établissement" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">
+                        {% if form.instance.pk %}
+                            {% trans "Modifier l'établissement" %}
+                        {% else %}
+                            {% trans "Ajouter un établissement" %}
+                        {% endif %}
+                    </h3>
+                </div>
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="alert alert-info" role="alert">
+                            Le code de l'établissement est généré automatiquement à partir de la région
+                            (3 premières lettres) et du nom de l'école (3 premières lettres).
+                        </div>
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                {% trans "Mettre à jour" %}
+                            {% else %}
+                                {% trans "Créer" %}
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'enseignants:etablissement_list' %}" class="btn btn-secondary">{% trans "Annuler" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    (function () {
+        const regionSelect = document.getElementById('id_region');
+        const prefectureSelect = document.getElementById('id_prefecture');
+        const communeSelect = document.getElementById('id_commune');
+        const quartierSelect = document.getElementById('id_quartier');
+        const secteurSelect = document.getElementById('id_secteur');
+
+        if (!regionSelect || !prefectureSelect || !communeSelect || !quartierSelect || !secteurSelect) {
+            return;
+        }
+
+        const endpoints = {
+            prefectures: "{% url 'enseignants:ajax-prefectures' %}",
+            communes: "{% url 'enseignants:ajax-communes' %}",
+            quartiers: "{% url 'enseignants:ajax-quartiers' %}",
+            secteurs: "{% url 'enseignants:ajax-secteurs' %}"
+        };
+
+
+        function resetSelect(selectEl, placeholder) {
+            selectEl.innerHTML = '';
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = placeholder;
+            selectEl.appendChild(option);
+            selectEl.value = '';
+            if (window.jQuery && window.jQuery.fn.select2) {
+                window.jQuery(selectEl).trigger('change.select2');
+            }
+        }
+
+        function setOptions(selectEl, items, placeholder, selectedValue) {
+            resetSelect(selectEl, placeholder);
+            items.forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.nom;
+                selectEl.appendChild(option);
+            });
+            if (selectedValue) {
+                selectEl.value = String(selectedValue);
+            }
+            if (window.jQuery && window.jQuery.fn.select2) {
+                window.jQuery(selectEl).trigger('change.select2');
+            }
+        }
+
+        async function fetchAndSet(url, queryParam, value, selectEl, placeholder, selectedValue) {
+            if (!value) {
+                resetSelect(selectEl, placeholder);
+                return;
+            }
+            try {
+                const response = await fetch(url + '?' + queryParam + '=' + encodeURIComponent(value));
+                const data = await response.json();
+                setOptions(selectEl, data.results || [], placeholder, selectedValue);
+            } catch (error) {
+                resetSelect(selectEl, placeholder);
+                console.error('Erreur de chargement cascade:', error);
+            }
+        }
+
+        async function onRegionChange() {
+            await fetchAndSet(endpoints.prefectures, 'region_id', regionSelect.value, prefectureSelect, 'Sélectionner une préfecture', null);
+            resetSelect(communeSelect, 'Sélectionner une commune');
+            resetSelect(quartierSelect, 'Sélectionner un quartier');
+            resetSelect(secteurSelect, 'Sélectionner un secteur');
+        }
+
+        async function onPrefectureChange() {
+            await fetchAndSet(endpoints.communes, 'prefecture_id', prefectureSelect.value, communeSelect, 'Sélectionner une commune', null);
+            resetSelect(quartierSelect, 'Sélectionner un quartier');
+            resetSelect(secteurSelect, 'Sélectionner un secteur');
+        }
+
+        async function onCommuneChange() {
+            await fetchAndSet(endpoints.quartiers, 'commune_id', communeSelect.value, quartierSelect, 'Sélectionner un quartier', null);
+            resetSelect(secteurSelect, 'Sélectionner un secteur');
+        }
+
+        async function onQuartierChange() {
+            await fetchAndSet(endpoints.secteurs, 'quartier_id', quartierSelect.value, secteurSelect, 'Sélectionner un secteur', null);
+        }
+
+
+        regionSelect.addEventListener('change', onRegionChange);
+        prefectureSelect.addEventListener('change', onPrefectureChange);
+        communeSelect.addEventListener('change', onCommuneChange);
+        quartierSelect.addEventListener('change', onQuartierChange);
+
+        // Compatibilite Select2: certains themes/emissions n'activent pas toujours le listener natif.
+        // En mode edition, on conserve les valeurs existantes affichees au chargement.
+        // La cascade ne s'active qu'au changement explicite d'une selection.
+    })();
+</script>
+{% endblock %}

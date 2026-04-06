@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Filières" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{% trans "Liste des Filières" %} <span class="badge badge-light ml-2">{{ paginator.count }}</span></h3>
+                </div>
+                <div class="card-body">
+                    <!-- Barre de recherche et filtres -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="get" class="form-inline">
+                                <input type="text" name="search" class="form-control mr-2" 
+                                       placeholder="{% trans 'Rechercher par nom ou code' %}" 
+                                       value="{{ search }}">
+                                <select name="etablissement" class="form-control mr-2">
+                                    <option value="">{% trans "Tous les établissements" %}</option>
+                                    {% for etab in etablissements %}
+                                    <option value="{{ etab.pk }}" {% if selected_etablissement|add:"" == etab.pk|add:"" %}selected{% endif %}>
+                                        {{ etab.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary mr-2">{% trans "Filtrer" %}</button>
+                                <a href="{% url 'enseignants:filiere_list' %}" class="btn btn-secondary">{% trans "Réinitialiser" %}</a>
+                            </form>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            {% if can_add %}
+                            <a href="{% url 'enseignants:filiere_create' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> {% trans "Ajouter une filière" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Tableau -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>{% trans "Nom" %}</th>
+                                    <th>{% trans "Code" %}</th>
+                                    <th>{% trans "Établissement" %}</th>
+                                    <th>{% trans "Durée (mois)" %}</th>
+                                    <th>{% trans "Heures totales" %}</th>
+                                    <th>{% trans "Programmes" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for filiere in filieres %}
+                                <tr>
+                                    <td>{{ row_start|add:forloop.counter }}</td>
+                                    <td>{{ filiere.nom }}</td>
+                                    <td><span class="badge badge-info">{{ filiere.code }}</span></td>
+                                    <td>
+                                        {% for etab in filiere.etablissements.all %}
+                                            {{ etab.nom }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            -
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ filiere.duree_mois }}</td>
+                                    <td>{{ filiere.nombre_heures_total }}</td>
+                                    <td><span class="badge badge-secondary">{{ filiere.programmes.count }}</span></td>
+                                    <td>
+                                        {% if can_view %}
+                                        <a href="{% url 'enseignants:filiere_detail' filiere.pk %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if can_change %}
+                                        <a href="{% url 'enseignants:filiere_update' filiere.pk %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">
+                                        {% trans "Aucune filière trouvée" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}">{% trans "Première" %}</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}">{% trans "Précédente" %}</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}">{% trans "Suivante" %}</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}">{% trans "Dernière" %}</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

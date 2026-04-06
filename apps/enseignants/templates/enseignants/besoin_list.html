@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Besoins en formateurs" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{% trans "Tableau des besoins" %} <span class="badge badge-light ml-2">{{ paginator.count }}</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-md-9">
+                            <form method="get" class="form-inline">
+                                <select name="etablissement" class="form-control mr-2">
+                                    <option value="">{% trans "Tous les établissements" %}</option>
+                                    {% for etablissement in etablissements %}
+                                    <option value="{{ etablissement.id }}" {% if selected_etablissement == etablissement.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ etablissement.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <select name="filiere" class="form-control mr-2">
+                                    <option value="">{% trans "Toutes les filières" %}</option>
+                                    {% for filiere in filieres %}
+                                    <option value="{{ filiere.id }}" {% if selected_filiere == filiere.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ filiere.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" name="search" class="form-control mr-2"
+                                       placeholder="{% trans 'Rechercher filière, programme, module' %}"
+                                       value="{{ search }}">
+                                <button type="submit" class="btn btn-primary mr-2">{% trans "Filtrer" %}</button>
+                                <a href="{% url 'enseignants:besoin_list' %}" class="btn btn-secondary">{% trans "Réinitialiser" %}</a>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-sm">
+                            <thead class="bg-light text-center">
+                                <tr>
+                                    <th rowspan="2">{% trans "Etablissement" %}</th>
+                                    <th rowspan="2">{% trans "FILIERES" %}</th>
+                                    <th rowspan="2">{% trans "PROGRAMME" %}</th>
+                                    <th rowspan="2">{% trans "ETAT" %}</th>
+                                    <th rowspan="2">{% trans "MODULES" %}</th>
+                                    <th rowspan="2">{% trans "Durée" %}</th>
+                                    <th colspan="6">{% trans "FORMATEUR" %}</th>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "REQUIS" %}</th>
+                                    <th>{% trans "COUVERT" %}</th>
+                                    <th>{% trans "RESTE" %}</th>
+                                    <th>{% trans "A PLANIFIER" %}</th>
+                                    <th>{% trans "PROFIL SOUHAITE" %}</th>
+                                    <th>{% trans "ACTION" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in besoin_rows %}
+                                <tr>
+                                    <td>{{ row.etablissement.nom|default:"-" }}</td>
+                                    <td>{{ row.filiere.nom|default:"-" }}</td>
+                                    <td>{{ row.programme.nom|default:"-" }}</td>
+                                    <td>
+                                        {% if row.etat == 'COUVERT' %}
+                                            <span class="badge badge-success">{{ row.etat }}</span>
+                                        {% elif row.etat == 'PARTIEL' %}
+                                            <span class="badge badge-warning">{{ row.etat }}</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">{{ row.etat }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ row.module.nom }}</td>
+                                    <td>{{ row.duree }}h</td>
+                                    <td class="text-center">{{ row.requis }}h</td>
+                                    <td class="text-center">
+                                        {{ row.existant }}h
+                                        <div class="small text-muted">{{ row.professeurs_existants }} prof</div>
+                                    </td>
+                                    <td class="text-center font-weight-bold">{{ row.besoins }}h</td>
+                                    <td class="text-center">{{ row.souhait }}h</td>
+                                    <td>
+                                        {{ row.profil_souhaite }}
+                                        {% if row.professeurs_mobilisables %}
+                                        <div class="small text-success mt-1">
+                                            Mobilisables :
+                                            {% for suggestion in row.professeurs_mobilisables|slice:':3' %}
+                                                {{ suggestion.professeur.prenom }} {{ suggestion.professeur.nom }} ({{ suggestion.heures_restantes }}h){% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ row.suggestion_url }}" class="btn btn-sm btn-outline-primary">{% trans "Voir suggestions" %}</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="12" class="text-center text-muted">{% trans "Aucune donnée de besoin trouvée" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}{% if selected_filiere %}&filiere={{ selected_filiere }}{% endif %}">{% trans "Première" %}</a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}{% if selected_filiere %}&filiere={{ selected_filiere }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}{% if selected_filiere %}&filiere={{ selected_filiere }}{% endif %}">{% trans "Suivante" %}</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

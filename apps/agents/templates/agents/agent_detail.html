@@ -12,12 +12,16 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-white">Agent - {{ agent.nom }} {{ agent.prenom }}</h6>
                         <div>
+                            {% if perms.agents.change_agent %}
                             <a href="{% url 'agent-update' agent.id %}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i> Modifier
                             </a>
+                            {% endif %}
+                            {% if perms.agents.delete_agent %}
                             <a href="{% url 'agent-delete' agent.id %}" class="btn btn-sm btn-danger">
                                 <i class="fas fa-trash"></i> Supprimer
                             </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

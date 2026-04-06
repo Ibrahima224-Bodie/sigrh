@@ -12,7 +12,13 @@
                     <h6 class="m-0 font-weight-bold text-white">{{ page_title|default:"Utilisateur" }}</h6>
                 </div>
                 <div class="card-body">
-                    <form method="post" novalidate>
+                    {% if request.resolver_match.url_name == 'user-create' %}
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-user-lock"></i>
+                        Le nouvel utilisateur sera cree en statut inactif. Un administrateur devra l'activer.
+                    </div>
+                    {% endif %}
+                    <form method="post" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
                         
                         {% if form.non_field_errors %}
@@ -46,19 +52,33 @@
                             </div>
                         </div>
 
+                        {% if form.photo %}
                         <div class="form-group">
-                            <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
-                            {{ form.password1 }}
-                            {% if form.password1.errors %}<div class="invalid-feedback d-block">{{ form.password1.errors }}</div>{% endif %}
-                            <small class="form-text text-muted">
-                                {{ form.password1.help_text|safe }}
-                            </small>
+                            <label for="{{ form.photo.id_for_label }}">{{ form.photo.label }}</label>
+                            {% if form.instance.photo %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.photo.url }}" alt="Photo utilisateur" class="img-thumbnail" style="max-width: 120px; max-height: 120px; object-fit: cover;">
+                            </div>
+                            {% endif %}
+                            {{ form.photo }}
+                            {% if form.photo.errors %}<div class="invalid-feedback d-block">{{ form.photo.errors }}</div>{% endif %}
                         </div>
+                        {% endif %}
 
+                        <div class="form-row align-items-start">
+                            <div class="form-group col-md-6 mb-0">
+                                <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}<div class="invalid-feedback d-block">{{ form.password1.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group col-md-6 mb-0">
+                                <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}<div class="invalid-feedback d-block">{{ form.password2.errors }}</div>{% endif %}
+                            </div>
+                        </div>
                         <div class="form-group">
-                            <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
-                            {{ form.password2 }}
-                            {% if form.password2.errors %}<div class="invalid-feedback d-block">{{ form.password2.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">{{ form.password1.help_text|safe }}</small>
                         </div>
 
                         <div class="form-row">
@@ -66,11 +86,7 @@
                                 <label for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
                                 {{ form.role }}
                                 {% if form.role.errors %}<div class="invalid-feedback d-block">{{ form.role.errors }}</div>{% endif %}
-                                <datalist id="role-list">
-                                    {% for choice_value, choice_label in role_choices %}
-                                    <option value="{{ choice_label }}">
-                                    {% endfor %}
-                                </datalist>
+                                <small class="form-text text-muted">Le rôle rattache automatiquement l'utilisateur à un groupe de permissions administrable depuis la page Rôles.</small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="{{ form.structure_text.id_for_label }}">{{ form.structure_text.label }}</label>
@@ -83,6 +99,27 @@
                                 </datalist>
                             </div>
                         </div>
+
+                        {% if form.groups or form.user_permissions %}
+                        <div class="form-row">
+                            {% if form.groups %}
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.groups.id_for_label }}">{{ form.groups.label }}</label>
+                                {{ form.groups }}
+                                {% if form.groups.errors %}<div class="invalid-feedback d-block">{{ form.groups.errors }}</div>{% endif %}
+                                <small class="form-text text-muted">Les groupes Django permettent de mutualiser des permissions.</small>
+                            </div>
+                            {% endif %}
+                            {% if form.user_permissions %}
+                            <div class="form-group col-md-6">
+                                <label for="{{ form.user_permissions.id_for_label }}">{{ form.user_permissions.label }}</label>
+                                {{ form.user_permissions }}
+                                {% if form.user_permissions.errors %}<div class="invalid-feedback d-block">{{ form.user_permissions.errors }}</div>{% endif %}
+                                <small class="form-text text-muted">Ces permissions s'appliquent directement a l'utilisateur.</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
 
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">

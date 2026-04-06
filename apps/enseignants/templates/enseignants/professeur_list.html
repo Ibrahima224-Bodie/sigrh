@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Professeurs" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">{% trans "Liste des Professeurs" %} <span class="badge badge-light ml-2">{{ paginator.count }}</span></h3>
+                </div>
+                <div class="card-body">
+                    <!-- Barre de recherche et filtres -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <form method="get" class="form-inline">
+                                <input type="text" name="search" class="form-control mr-2" 
+                                       placeholder="{% trans 'Rechercher par nom, email ou spécialité' %}" 
+                                       value="{{ search }}">
+                                <select name="etablissement" class="form-control mr-2">
+                                    <option value="">{% trans "Tous les établissements" %}</option>
+                                    {% for etab in etablissements %}
+                                    <option value="{{ etab.pk }}" {% if selected_etablissement|add:"" == etab.pk|add:"" %}selected{% endif %}>
+                                        {{ etab.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <select name="statut" class="form-control mr-2">
+                                    <option value="">{% trans "Tous les statuts" %}</option>
+                                    {% for value, label in statut_choices %}
+                                    <option value="{{ value }}" {% if selected_statut == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary mr-2">{% trans "Filtrer" %}</button>
+                                <a href="{% url 'enseignants:professeur_list' %}" class="btn btn-secondary">{% trans "Réinitialiser" %}</a>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            {% if can_export_template or can_export_data or can_import %}
+                            <div class="btn-group mb-2" role="group" aria-label="CSV actions">
+                                {% if can_export_template %}
+                                <a href="{% url 'enseignants:export_csv_template' csv_entity %}" class="btn btn-outline-primary btn-sm">{% trans "Format" %}</a>
+                                {% endif %}
+                                {% if can_export_data %}
+                                <a href="{% url 'enseignants:export_csv_data' csv_entity %}" class="btn btn-outline-secondary btn-sm">{% trans "Exporter" %}</a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% if can_import %}
+                            <form method="post" action="{% url 'enseignants:import_csv_data' csv_entity %}" enctype="multipart/form-data" class="d-inline-block mr-2 mb-2">
+                                {% csrf_token %}
+                                <label class="btn btn-outline-success btn-sm mb-0">
+                                    {% trans "Importer" %}
+                                    <input type="file" name="file" accept=".csv" required hidden onchange="this.form.submit()">
+                                </label>
+                            </form>
+                            {% endif %}
+                            {% if can_add %}
+                            <a href="{% url 'enseignants:professeur_create' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> {% trans "Ajouter un professeur" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Tableau -->
+                    <div class="table-responsive professeur-table-wrap">
+                        <table class="table table-striped table-hover table-bordered table-sm professeur-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>{% trans "Matricule" %}</th>
+                                    <th>{% trans "Prénom" %}</th>
+                                    <th>{% trans "Nom" %}</th>
+                                    <th>{% trans "Sexe" %}</th>
+                                    <th>{% trans "Hiérarchie" %}</th>
+                                    <th>{% trans "Email" %}</th>
+                                    <th>{% trans "Téléphone" %}</th>
+                                    <th>{% trans "Spécialité" %}</th>
+                                    <th>{% trans "Statut" %}</th>
+                                    <th>{% trans "Corps" %}</th>
+                                    <th>{% trans "Établissement" %}</th>
+                                    <th>{% trans "Date embauche" %}</th>
+                                    <th>{% trans "Actif" %}</th>
+                                    <th>{% trans "Heures affectées" %}</th>
+                                    <th>{% trans "Heures utilisées" %}</th>
+                                    <th>{% trans "Heures restantes" %}</th>
+                                    <th>{% trans "Taux d'utilisation" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for professeur in professeurs %}
+                                <tr>
+                                    <td>{{ row_start|add:forloop.counter }}</td>
+                                    <td>{{ professeur.matricule|default:"-" }}</td>
+                                    <td>{{ professeur.prenom }}</td>
+                                    <td>{{ professeur.nom }}</td>
+                                    <td>{{ professeur.get_sexe_display|default:"-" }}</td>
+                                    <td>{{ professeur.hierarchie|default:"-" }}</td>
+                                    <td>{{ professeur.email|default:"-" }}</td>
+                                    <td>{{ professeur.telephone|default:"-" }}</td>
+                                    <td>{{ professeur.specialite }}</td>
+                                    <td>
+                                        <span class="badge {% if professeur.statut == 'permanent' %}badge-success{% elif professeur.statut == 'contractuel' %}badge-info{% else %}badge-warning{% endif %}">
+                                            {{ professeur.get_statut_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ professeur.corps|default:"-" }}</td>
+                                    <td>{{ professeur.etablissement.nom }}</td>
+                                    <td>{{ professeur.date_embauche|default:"-" }}</td>
+                                    <td>
+                                        {% if professeur.actif %}
+                                        <span class="badge badge-success">{% trans "Oui" %}</span>
+                                        {% else %}
+                                        <span class="badge badge-danger">{% trans "Non" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-primary">{{ professeur.heures_affectees }}h</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ professeur.heures_utilisees }}h</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">{{ professeur.heures_restantes }}h</span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar {% if professeur.taux_utilisation >= 100 %}bg-danger{% elif professeur.taux_utilisation >= 80 %}bg-warning{% else %}bg-info{% endif %}" 
+                                                 role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ professeur.taux_utilisation_width }}" style="width: {{ professeur.taux_utilisation_width }}%;">
+                                                {{ professeur.taux_utilisation|floatformat:2 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if can_view %}
+                                        <a href="{% url 'enseignants:professeur_detail' professeur.pk %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if can_change %}
+                                        <a href="{% url 'enseignants:professeur_update' professeur.pk %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if can_delete %}
+                                        <a href="{% url 'enseignants:professeur_delete' professeur.pk %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="19" class="text-center text-muted">
+                                        {% trans "Aucun professeur trouvé" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}{% if selected_statut %}&statut={{ selected_statut }}{% endif %}">{% trans "Première" %}</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}{% if selected_statut %}&statut={{ selected_statut }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_etablissement %}&etablissement={{ selected_etablissement }}{% endif %}{% if selected_statut %}&statut={{ selected_statut }}{% endif %}">{% trans "Suivante" %}</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .professeur-table-wrap {
+        overflow-x: auto;
+    }
+
+    .professeur-table {
+        min-width: 1900px;
+    }
+
+    .professeur-table th,
+    .professeur-table td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
