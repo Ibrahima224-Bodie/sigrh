@@ -1,0 +1,1 @@
+web: gunicorn sigrh.wsgi:application
